@@ -1,0 +1,20 @@
+OUTPUT = modbin_win64.exe
+
+CC    = x86_64-w64-mingw32-gcc
+STRIP = x86_64-w64-mingw32-strip
+CFLAG = -Os -static -I.
+
+SRC   = $(wildcard *.c)
+OBJ   = $(SRC:.c=.win64.o)
+
+%.win64.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(OBJ)
+	$(CC) $(CFLAGS) -o $(OUTPUT) $(OBJ)
+	$(STRIP) --strip-all $(OUTPUT)
+
+clean:
+	rm -vf $(OUTPUT) $(OBJ)
