@@ -362,6 +362,9 @@ tdo_aif_print(FILE *output_,
     }
 
   fprintf(output_,"3DO header is:\n");
+
+  fprintf(output_,"  name: %s\n",tdo_aif_get_name(buf_));
+
   w = tdo_aif_get_debug(buf_);
   switch(w)
     {
