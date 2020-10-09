@@ -6,25 +6,28 @@ modbin is a tool that was included in the 3DO SDK and is used to modify the 3DO 
 # USAGE
 
 ```
-Usage: ./modbin [options]... <file>
+Usage: modbin [options]... <input-file> [<output-file>]
 
-  modbin is used to set 3DO AIF header values.
+  modbin is used to set 3DO AIF header values and sign executables.
 
-  -h --help            print this help message and exit
-  -V                   print modbin version
-     --debug           enable debugging
-     --nodebug         disable debugging
-     --pri=INT         set priority
-     --version=INT     set version number
-     --flags=INT       set app flags
-     --osversion=INT   set OS_version number
-     --osrevision=INT  set OS_revision number
-     --stack=INT       set stack size
-     --freespace=INT   set freespace
-     --maxusecs=INT    set maximum usecs
-     --verbose         turn on verbose mode
-     --reset           resets all values to default
+  -h --help                 print this help message and exit
+  -V                        print modbin version
+     --debug                enable debugging
+     --nodebug              disable debugging
+     --pri=UNSIGNED         set priority
+     --version=UNSIGNED     set version number
+     --flags=UNSIGNED       set app flags
+     --osversion=UNSIGNED   set OS_version number
+     --osrevision=UNSIGNED  set OS_revision number
+     --stack=UNSIGNED       set stack size
+     --freespace=UNSIGNED   set freespace
+     --maxusecs=UNSIGNED    set maximum usecs
+     --name=STRING          executable name
+     --reset                resets all values to default
+     --sign=app|3do         sign executable
 ```
+
+To print out the current values of a 3DO AIF executable just include an input file. You can also combine that with the other options to confirm what gets set and their values. If you wish to create a new file set the output. The new file can be the same as the original if you wish to overwrite it.
 
 
 # BUILD
@@ -35,8 +38,6 @@ Usage: ./modbin [options]... <file>
 $ git clone https://github.com/trapexit/modbin.git
 $ cd modbin
 $ make
-cc -Os -I. -o modbin modbin.c
-strip --strip-all modbin
 ```
 
 ### Windows (mingw)
@@ -45,11 +46,8 @@ strip --strip-all modbin
 $ sudo apt install gcc-mingw-w64
 $ git clone https://github.com/trapexit/modbin.git
 $ cd modbin
-$ make win
-i686-w64-mingw32-gcc -static -Os -I. -o modbin_32.exe modbin.c
-i686-w64-mingw32-strip --strip-all modbin_32.exe
-x86_64-w64-mingw32-gcc -static -Os -I. -o modbin_64.exe modbin.c
-x86_64-w64-mingw32-strip --strip-all modbin_64.exe
+$ make -f Makefile.win32
+$ make -f Makefile.win64
 ```
 
 

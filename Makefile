@@ -1,22 +1,23 @@
-all: modbin
+OUTPUT = modbin
 
-modbin: modbin.c simple-opt.h
-	$(CC) -Os -I. -o modbin modbin.c
-	strip --strip-all modbin
+STRIP  = strip
+CFLAGS = -Os -I.
 
-win: modbin-win32 modbin-win64
+SRC = $(wildcard *.c)
+OBJ = $(SRC:.c=.o)
 
-modbin-win32:
-	i686-w64-mingw32-gcc -static -Os -I. -o modbin_32.exe modbin.c
-	i686-w64-mingw32-strip --strip-all modbin_32.exe
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-modbin-win64:
-	x86_64-w64-mingw32-gcc -static -Os -I. -o modbin_64.exe modbin.c
-	x86_64-w64-mingw32-strip --strip-all modbin_64.exe
+all: $(OUTPUT)
 
-static:
-	$(CC) -Os -static -I. -o modbin modbin.c
-	strip --strip-all modbin
+$(OUTPUT): $(OBJ)
+	$(CC) $(CFLAGS) -o $(OUTPUT) $(OBJ)
+	$(STRIP) --strip-all $(OUTPUT)
+
+static: $(OBJ)
+	$(CC) -static $(CFLAGS) -o $(OUTPUT) $(OBJ)
+	$(STRIP) --strip-all $(OUTPUT)
 
 clean:
-	rm -vf modbin modbin_32.exe modbin_64.exe
+	rm -vf $(OUTPUT) $(OBJ)
