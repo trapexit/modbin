@@ -27,7 +27,7 @@ Usage: modbin [options]... <input-file> [<output-file>]
      --sign=app|3do         sign executable
 ```
 
-To print out the current values of a 3DO AIF executable just include an input file. You can also combine that with the other options to confirm what gets set and their values. If you wish to create a new file set the output. The new file can be the same as the original if you wish to overwrite it.
+To print out the current values of a 3DO AIF executable just include an input file. You can also combine that with the other options to confirm what gets set and their values. If you wish to create a new file set the output. The new file can be the same as the original if you wish to overwrite it. Be sure to re-sign if changing the values of a signed executable.
 
 
 # BUILD
