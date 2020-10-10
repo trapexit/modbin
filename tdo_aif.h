@@ -24,6 +24,8 @@
 
 
 void tdo_aif_set_3do_flag(void *buf);
+void tdo_aif_reset_3do_flag(void *buf);
+
 void tdo_aif_set_debug(void *buf);
 void tdo_aif_set_nodebug(void *buf);
 void tdo_aif_set_priority(void *buf, uint8_t val);
@@ -54,7 +56,7 @@ const char *tdo_aif_get_name(void *buf);
 
 bool tdo_aif_is_aif(void *buf, long size);
 
-void tdo_aif_reset(void *buf);
+void tdo_aif_reset(void *buf, long *size);
 
 bool tdo_aif_has_sig(void *buf);
 
