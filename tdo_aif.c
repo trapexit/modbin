@@ -83,21 +83,28 @@ get_word(const uint8_t *buf_,
 }
 
 void
-tdo_aif_set_3do_flag(void    *buf_,
-                     uint8_t  val_)
+tdo_aif_set_3do_flag(void *buf_)
 {
-  set_byte(buf_,FLAGS_OFFSET,val_);
+  set_byte(buf_,TDO_HEADER_OFFSET,TDO_HEADER_VALUE);
+}
+
+void
+tdo_aif_reset_3do_flag(void *buf_)
+{
+  set_byte(buf_,TDO_HEADER_OFFSET,0x00);
 }
 
 void
 tdo_aif_set_debug(void *buf_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_word(buf_,DEBUG_OFFSET,DEBUG_VALUE);
 }
 
 void
 tdo_aif_set_nodebug(void *buf_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_word(buf_,DEBUG_OFFSET,NODEBUG_VALUE);
 }
 
@@ -105,6 +112,7 @@ void
 tdo_aif_set_priority(void    *buf_,
                      uint8_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_byte(buf_,PRIORITY_OFFSET,val_);
 }
 
@@ -112,6 +120,7 @@ void
 tdo_aif_set_version(void    *buf_,
                     uint8_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_byte(buf_,VERSION_OFFSET,val_);
 }
 
@@ -119,6 +128,7 @@ void
 tdo_aif_set_flags(void    *buf_,
                   uint8_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_byte(buf_,FLAGS_OFFSET,val_);
 }
 
@@ -126,6 +136,7 @@ void
 tdo_aif_set_osversion(void    *buf_,
                       uint8_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_byte(buf_,OSVERSION_OFFSET,val_);
 }
 
@@ -133,6 +144,7 @@ void
 tdo_aif_set_osrevision(void    *buf_,
                        uint8_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_byte(buf_,OSREVISION_OFFSET,val_);
 }
 
@@ -140,6 +152,7 @@ void
 tdo_aif_set_stack(void     *buf_,
                   uint32_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_word(buf_,STACK_OFFSET,val_);
 }
 
@@ -147,6 +160,7 @@ void
 tdo_aif_set_freespace(void     *buf_,
                       uint32_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_word(buf_,FREESPACE_OFFSET,val_);
 }
 
@@ -154,6 +168,7 @@ void
 tdo_aif_set_maxusecs(void     *buf_,
                      uint32_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_word(buf_,MAXUSECS_OFFSET,val_);
 }
 
@@ -161,6 +176,7 @@ void
 tdo_aif_set_sig_offset(void     *buf_,
                        uint32_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_word(buf_,SIG_OFFSET_OFFSET,val_);
 }
 
@@ -168,6 +184,7 @@ void
 tdo_aif_set_sig_size(void     *buf_,
                      uint32_t  val_)
 {
+  tdo_aif_set_3do_flag(buf_);
   set_word(buf_,SIG_SIZE_OFFSET,val_);
 }
 
@@ -176,13 +193,18 @@ tdo_aif_set_name(void       *buf_,
                  const char *val_)
 {
   char *buf = buf_;
+  size_t len;
 
-  if(val_ == NULL)
-    memset(&buf[NAME_OFFSET],0,NAME_SIZE);
-  else
-    strncpy(&buf[NAME_OFFSET],val_,NAME_SIZE-1);
+  len = strlen(val_);
+  if(len > (NAME_SIZE - 1))
+    len = (NAME_SIZE - 1);
 
-  buf[NAME_OFFSET + NAME_SIZE - 1] = '\0';
+  memset(&buf[NAME_OFFSET],0,NAME_SIZE);
+  strncpy(&buf[NAME_OFFSET],val_,len);
+  for(size_t i = len; i < NAME_SIZE; i++)
+    buf[NAME_OFFSET + i] = '\0';
+
+  tdo_aif_set_3do_flag(buf_);
 }
 
 uint8_t
@@ -271,9 +293,9 @@ tdo_aif_reset_debug(void *buf_)
 }
 
 void
-tdo_aif_reset(void *buf_)
+tdo_aif_reset(void *buf_,
+              long *size_)
 {
-  tdo_aif_set_3do_flag(buf_,0x00);
   tdo_aif_reset_debug(buf_);
   tdo_aif_set_priority(buf_,0x00);
   tdo_aif_set_version(buf_,0x00);
@@ -283,9 +305,12 @@ tdo_aif_reset(void *buf_)
   tdo_aif_set_stack(buf_,0x00000000);
   tdo_aif_set_freespace(buf_,0x00000000);
   tdo_aif_set_maxusecs(buf_,0x00000000);
+  if(tdo_aif_get_sig_offset(buf_) && tdo_aif_get_sig_size(buf_))
+    *size_ = tdo_aif_get_sig_offset(buf_);
   tdo_aif_set_sig_offset(buf_,0x00000000);
   tdo_aif_set_sig_size(buf_,0x00000000);
-  tdo_aif_set_name(buf_,NULL);
+  tdo_aif_set_name(buf_,"");
+  tdo_aif_reset_3do_flag(buf_);
 }
 
 bool

@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define MODBIN_VERSION "1.1.0"
+#define MODBIN_VERSION "1.3.0"
 
 static
 struct simple_opt*
@@ -144,7 +144,7 @@ main(int    argc_,
       else if(streq(options[i].long_name,"name"))
         tdo_aif_set_name(file_buf,options[i].val.v_string);
       else if(streq(options[i].long_name,"reset"))
-        tdo_aif_reset(file_buf);
+        tdo_aif_reset(file_buf,&file_size);
       else if(streq(options[i].long_name,"sign"))
         sign = options[i].string_set[options[i].val.v_string_set_idx];
     }
