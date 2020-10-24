@@ -30,7 +30,7 @@ fileio_read_all(const char *filepath_,
   FILE *file;
   size_t rv;
 
-  file = fopen(filepath_,"r");
+  file = fopen(filepath_,"rb");
   if(file == NULL)
     {
       fprintf(stderr,
@@ -67,7 +67,9 @@ fileio_read_all(const char *filepath_,
   if(rv != size)
     {
       fprintf(stderr,
-              "ERROR: failed to read file fully - '%s'\n",
+              "ERROR: failed to read file fully - %ld / %ld bytes - '%s'\n",
+              rv,
+              size,
               filepath_);
       fclose(file);
       return NULL;
@@ -88,7 +90,7 @@ fileio_write_all(const char   *filepath_,
   FILE *file;
   size_t rv;
 
-  file = fopen(filepath_,"w");
+  file = fopen(filepath_,"wb");
   if(file == NULL)
     {
       fprintf(stderr,
@@ -102,7 +104,9 @@ fileio_write_all(const char   *filepath_,
   if(rv != size_)
     {
       fprintf(stderr,
-              "ERROR: failed to write file fully - %s\n",
+              "ERROR: failed to write file fully - %ld / %ld bytes - %s\n",
+              rv,
+              size_,
               filepath_);
     }
 
