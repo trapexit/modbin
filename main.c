@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define MODBIN_VERSION "1.3.0"
+#define MODBIN_VERSION "1.3.1"
 
 static
 struct simple_opt*
