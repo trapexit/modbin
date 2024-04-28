@@ -38,21 +38,23 @@ simple_opt_options(void)
   static const char *key_set[] = {"app","3do",NULL};
   static struct simple_opt options[] =
     {
-     {SIMPLE_OPT_FLAG,       'h',"help",      false,"print this help message and exit"},
-     {SIMPLE_OPT_FLAG,       'V',NULL,        false,"print modbin version"},
-     {SIMPLE_OPT_FLAG,      '\0',"debug",     false,"enable debugging"},
-     {SIMPLE_OPT_FLAG,      '\0',"nodebug",   false,"disable debugging"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"pri",       true, "set priority"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"version",   true, "set version number"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"flags",     true, "set app flags"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"osversion", true, "set OS_version number"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"osrevision",true, "set OS_revision number"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"stack",     true, "set stack size"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"freespace", true, "set freespace"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"maxusecs",  true, "set maximum usecs"},
-     {SIMPLE_OPT_STRING,    '\0',"name",      true, "executable name"},
-     {SIMPLE_OPT_FLAG,      '\0',"reset",     false,"resets all values to default"},
-     {SIMPLE_OPT_STRING_SET,'\0',"sign",      true, "sign executable","app|3do",key_set},
+     {SIMPLE_OPT_FLAG,       'h',"help",       false,"print this help message and exit"},
+     {SIMPLE_OPT_FLAG,       'V',NULL,         false,"print modbin version"},
+     {SIMPLE_OPT_FLAG,      '\0',"debug",      false,"enable debugging"},
+     {SIMPLE_OPT_FLAG,      '\0',"nodebug",    false,"disable debugging"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"subsystype", true, "set folio subtype"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"type",       true, "set folio node type"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"pri",        true, "set priority"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"version",    true, "set version number"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"flags",      true, "set app flags"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"osversion",  true, "set OS_version number"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"osrevision", true, "set OS_revision number"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"stack",      true, "set stack size"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"freespace",  true, "set freespace"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"maxusecs",   true, "set maximum usecs"},
+     {SIMPLE_OPT_STRING,    '\0',"name",       true, "executable name"},
+     {SIMPLE_OPT_FLAG,      '\0',"reset",      false,"resets all values to default"},
+     {SIMPLE_OPT_STRING_SET,'\0',"sign",       true, "sign executable","app|3do", key_set},
      {SIMPLE_OPT_END}
     };
 
@@ -125,6 +127,10 @@ main(int    argc_,
         tdo_aif_set_debug(file_buf);
       else if(streq(options[i].long_name,"nodebug"))
         tdo_aif_set_nodebug(file_buf);
+      else if(streq(options[i].long_name,"subsystype"))
+        tdo_aif_set_subsystype(file_buf,options[i].val.v_unsigned);
+      else if(streq(options[i].long_name,"type"))
+        tdo_aif_set_type(file_buf,options[i].val.v_unsigned);
       else if(streq(options[i].long_name,"pri"))
         tdo_aif_set_priority(file_buf,options[i].val.v_unsigned);
       else if(streq(options[i].long_name,"version"))

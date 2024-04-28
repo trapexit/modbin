@@ -25,6 +25,8 @@
 
 #define TDO_HEADER_OFFSET 0x2C
 #define DEBUG_OFFSET      0x40
+#define SUBSYSTYPE_OFFSET 0x88
+#define TYPE_OFFSET       0x89
 #define PRIORITY_OFFSET   0x8A
 #define VERSION_OFFSET    0x94
 #define FLAGS_OFFSET      0xA4
@@ -115,6 +117,23 @@ tdo_aif_set_priority(void    *buf_,
   tdo_aif_set_3do_flag(buf_);
   set_byte(buf_,PRIORITY_OFFSET,val_);
 }
+
+void
+tdo_aif_set_subsystype(void    *buf_,
+                       uint8_t  val_)
+{
+  tdo_aif_set_3do_flag(buf_);
+  set_byte(buf_,SUBSYSTYPE_OFFSET,val_);
+}
+
+void
+tdo_aif_set_type(void    *buf_,
+                 uint8_t  val_)
+{
+  tdo_aif_set_3do_flag(buf_);
+  set_byte(buf_,TYPE_OFFSET,val_);
+}
+
 
 void
 tdo_aif_set_version(void    *buf_,
@@ -226,6 +245,18 @@ tdo_aif_get_priority(void *buf_)
 }
 
 uint8_t
+tdo_aif_get_subsystype(void *buf_)
+{
+  return get_byte(buf_,SUBSYSTYPE_OFFSET);
+}
+
+uint8_t
+tdo_aif_get_type(void *buf_)
+{
+  return get_byte(buf_,TYPE_OFFSET);
+}
+
+uint8_t
 tdo_aif_get_version(void *buf_)
 {
   return get_byte(buf_,VERSION_OFFSET);
@@ -298,6 +329,8 @@ tdo_aif_reset(void *buf_,
 {
   tdo_aif_reset_debug(buf_);
   tdo_aif_set_priority(buf_,0x00);
+  tdo_aif_set_subsystype(buf_,0x00);
+  tdo_aif_set_type(buf_,0x00);
   tdo_aif_set_version(buf_,0x00);
   tdo_aif_set_flags(buf_,0x00);
   tdo_aif_set_osversion(buf_,0x18);
@@ -403,6 +436,12 @@ tdo_aif_print(FILE *output_,
       fprintf(output_,"  debugging not set: 0x%.8x\n",w);
       break;
     }
+
+  b = tdo_aif_get_subsystype(buf_);
+  fprintf(output_,"  subsystype: 0x%.2x (%d)\n",b,b);
+
+  b = tdo_aif_get_type(buf_);
+  fprintf(output_,"  type: 0x%.2x (%d)\n",b,b);
 
   b = tdo_aif_get_priority(buf_);
   fprintf(output_,"  priority: 0x%.2x (%d)\n",b,b);
