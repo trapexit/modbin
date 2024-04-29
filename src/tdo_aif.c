@@ -47,7 +47,7 @@
 static
 void
 set_byte(uint8_t *buf_,
-         long     off_,
+         size_t   off_,
          uint8_t  val_)
 {
   buf_[off_] = val_;
@@ -56,7 +56,7 @@ set_byte(uint8_t *buf_,
 static
 void
 set_word(uint8_t  *buf_,
-         long      off_,
+         size_t    off_,
          uint32_t  val_)
 {
   buf_[off_ + 0] = ((uint8_t)(val_ >> 24));
@@ -68,7 +68,7 @@ set_word(uint8_t  *buf_,
 static
 uint8_t
 get_byte(const uint8_t *buf_,
-         long           off_)
+         size_t         off_)
 {
   return buf_[off_];
 }
@@ -76,7 +76,7 @@ get_byte(const uint8_t *buf_,
 static
 uint32_t
 get_word(const uint8_t *buf_,
-         long           off_)
+         size_t         off_)
 {
   return (((uint8_t)buf_[off_ + 0] << 24) |
           ((uint8_t)buf_[off_ + 1] << 16) |
@@ -324,8 +324,8 @@ tdo_aif_reset_debug(void *buf_)
 }
 
 void
-tdo_aif_reset(void *buf_,
-              long *size_)
+tdo_aif_reset(void   *buf_,
+              size_t *size_)
 {
   tdo_aif_reset_debug(buf_);
   tdo_aif_set_priority(buf_,0x00);
@@ -353,8 +353,8 @@ tdo_aif_has_sig(void *buf_)
 }
 
 bool
-tdo_aif_is_aif(void *buf_,
-               long  size_)
+tdo_aif_is_aif(void   *buf_,
+               size_t  size_)
 {
   if(size_ < 256)
     return false;

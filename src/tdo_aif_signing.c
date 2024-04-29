@@ -72,10 +72,10 @@ sign_md5_digest(const char   *key_,
 
 static
 bool
-end_of_buffer_0xFFFFFFFF(void *buf_,
-                         long  size_)
+end_of_buffer_0xFFFFFFFF(void   *buf_,
+                         size_t  size_)
 {
-  long offset;
+  size_t offset;
   uint8_t *buf;
 
   buf    = buf_;
@@ -89,11 +89,10 @@ end_of_buffer_0xFFFFFFFF(void *buf_,
 
 int
 tdo_aif_sign(void       **buf_,
-             long        *size_,
+             size_t      *size_,
              const char  *key_)
 {
-  int rv;
-  long size;
+  size_t size;
   char *buf;
   rsa512_sig_t sig;
   md5_digest_t digest;

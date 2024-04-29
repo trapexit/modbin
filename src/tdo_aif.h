@@ -58,9 +58,9 @@ uint32_t    tdo_aif_get_sig_offset(void *buf);
 uint32_t    tdo_aif_get_sig_size(void *buf);
 const char *tdo_aif_get_name(void *buf);
 
-bool tdo_aif_is_aif(void *buf, long size);
+bool tdo_aif_is_aif(void *buf, size_t size);
 
-void tdo_aif_reset(void *buf, long *size);
+void tdo_aif_reset(void *buf, size_t *size);
 
 bool tdo_aif_has_sig(void *buf);
 
