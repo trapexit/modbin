@@ -18,4 +18,10 @@
 
 #pragma once
 
-int tdo_aif_sign(void **buf, long *size, const char *key);
+#include <stddef.h>
+
+char *fileio_read_all(const char *filepath,
+                      size_t     *size);
+int   fileio_write_all(const char   *filepath,
+                       const void   *data,
+                       const size_t  size);

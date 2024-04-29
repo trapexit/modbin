@@ -66,9 +66,8 @@ main(int    argc_,
      char **argv_)
 {
   int rv;
-  FILE *file;
   void *file_buf;
-  long  file_size;
+  size_t file_size;
   const char *sign;
   const char *input_file;
   const char *output_file;

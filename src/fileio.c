@@ -23,10 +23,10 @@
 
 char *
 fileio_read_all(const char *filepath_,
-                long       *size_)
+                size_t     *size_)
 {
   void *buf;
-  long  size;
+  size_t size;
   FILE *file;
   size_t rv;
 
@@ -67,7 +67,7 @@ fileio_read_all(const char *filepath_,
   if(rv != size)
     {
       fprintf(stderr,
-              "ERROR: failed to read file fully - %ld / %ld bytes - '%s'\n",
+              "ERROR: failed to read file fully - %zu / %zu bytes - '%s'\n",
               rv,
               size,
               filepath_);
@@ -104,7 +104,7 @@ fileio_write_all(const char   *filepath_,
   if(rv != size_)
     {
       fprintf(stderr,
-              "ERROR: failed to write file fully - %ld / %ld bytes - %s\n",
+              "ERROR: failed to write file fully - %zu / %zu bytes - %s\n",
               rv,
               size_,
               filepath_);
