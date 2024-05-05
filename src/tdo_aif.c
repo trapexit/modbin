@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
+#include <time.h>
 
 #define TDO_HEADER_OFFSET 0x2C
 #define DEBUG_OFFSET      0x40
@@ -39,10 +40,26 @@
 #define MAXUSECS_OFFSET   0xBC
 #define NAME_OFFSET       0xC0
 #define NAME_SIZE         32
+#define TIME_OFFSET       (NAME_OFFSET + NAME_SIZE)
+
+#define SECONDS_PER_YEAR (365 * 24 * 60 * 60)
 
 #define TDO_HEADER_VALUE 0x40
+#define NOP              0xE1A00000
 #define DEBUG_VALUE      0xEF00010A
 #define NODEBUG_VALUE    0xE1A02002
+#define BL               0xEB
+
+#define KERNELNODE 1
+
+#define FOLIONODE  4
+#define TASKNODE   5
+#define DEVICENODE 15
+
+#define FLAG_PRIVILEGE  0x02
+#define FLAG_USERAPP    0x04
+#define FLAG_NORESETOK  0x10
+#define FLAG_DATADISCOK 0x20
 
 static
 void
@@ -226,6 +243,17 @@ tdo_aif_set_name(void       *buf_,
   tdo_aif_set_3do_flag(buf_);
 }
 
+void
+tdo_aif_set_time(void *buf_)
+{
+  uint32_t t;
+
+  t = time(NULL);
+  t -= ((1993 - 1970) * SECONDS_PER_YEAR);
+
+  set_word(buf_,TIME_OFFSET,t);
+}
+
 uint8_t
 tdo_aif_get_3do_flag(void *buf_)
 {
@@ -250,10 +278,44 @@ tdo_aif_get_subsystype(void *buf_)
   return get_byte(buf_,SUBSYSTYPE_OFFSET);
 }
 
+const
+char*
+tdo_aif_get_subsystype_str(uint8_t b_)
+{
+  switch(b_)
+    {
+    case 0:
+      return "none";
+    case KERNELNODE:
+      return "KERNELNODE";
+    }
+
+  return ":unknown:";
+}
+
 uint8_t
 tdo_aif_get_type(void *buf_)
 {
   return get_byte(buf_,TYPE_OFFSET);
+}
+
+const
+char*
+tdo_aif_get_type_str(uint8_t b_)
+{
+  switch(b_)
+    {
+    case 0:
+      return "none";
+    case FOLIONODE:
+      return "FOLIONODE";
+    case TASKNODE:
+      return "TASKNODE";
+    case DEVICENODE:
+      return "DEVICENODE";
+    }
+
+  return ":unknown:";
 }
 
 uint8_t
@@ -266,6 +328,37 @@ uint8_t
 tdo_aif_get_flags(void *buf_)
 {
   return get_byte(buf_,FLAGS_OFFSET);
+}
+
+const
+char*
+tdo_aif_get_flags_str(uint8_t b_)
+{
+  switch(b_)
+    {
+    case 0:
+      return "none";
+    case FLAG_PRIVILEGE:
+      return "privilege";
+    case FLAG_USERAPP:
+      return "userapp";
+    case FLAG_NORESETOK:
+      return "noresetok";
+    case FLAG_DATADISCOK:
+      return "datadiscok";
+    case FLAG_PRIVILEGE|FLAG_USERAPP:
+      return "privilege,userapp";
+    case FLAG_NORESETOK|FLAG_DATADISCOK:
+      return "NORESETOK,datadiscok";
+    case FLAG_PRIVILEGE|FLAG_USERAPP|FLAG_DATADISCOK:
+      return "privilege,userapp,datadiscok";
+    case FLAG_PRIVILEGE|FLAG_USERAPP|FLAG_NORESETOK:
+      return "privilege,userapp,noresetok";
+    case FLAG_PRIVILEGE|FLAG_USERAPP|FLAG_NORESETOK|FLAG_DATADISCOK:
+      return "privilege,userapp,noresetok,datadiscok";
+    }
+
+  return ":unknown:";
 }
 
 uint8_t
@@ -317,6 +410,28 @@ tdo_aif_get_name(void *buf_)
   return &((const char*)buf_)[NAME_OFFSET];
 }
 
+uint32_t
+tdo_aif_get_time(void *buf_)
+{
+  return get_word(buf_,TIME_OFFSET);
+}
+
+char*
+tdo_aif_get_time_str(void *buf_)
+{
+  time_t t;
+  char *str;
+
+  t  = tdo_aif_get_time(buf_);
+  t += ((1993 - 1970) * SECONDS_PER_YEAR);
+
+  str = ctime(&t);
+
+  str[strlen(str) - 1] = '\0';
+
+  return str;
+}
+
 void
 tdo_aif_reset_debug(void *buf_)
 {
@@ -343,6 +458,7 @@ tdo_aif_reset(void   *buf_,
   tdo_aif_set_sig_offset(buf_,0x00000000);
   tdo_aif_set_sig_size(buf_,0x00000000);
   tdo_aif_set_name(buf_,"");
+  set_word(buf_,TIME_OFFSET,0);
   tdo_aif_reset_3do_flag(buf_);
 }
 
@@ -359,7 +475,7 @@ tdo_aif_is_aif(void   *buf_,
   if(size_ < 256)
     return false;
 
-  if(get_word(buf_,0) != 0xE1A00000)
+  if(get_word(buf_,0) != NOP && get_byte(buf_,0) != BL)
     return false;
 
   if(tdo_aif_get_sig_offset(buf_) && tdo_aif_get_sig_size(buf_))
@@ -412,6 +528,30 @@ tdo_aif_print(FILE *output_,
   uint8_t b;
   uint32_t w;
 
+  fprintf(output_,"AIF header:\n");
+
+  b = get_byte(buf_,0);
+  w = get_word(buf_,0);
+  fprintf(output_,"  compressed: ");
+  if(w == NOP)
+    fprintf(output_,"no");
+  else if(b == BL)
+    fprintf(output_,"yes");
+  else
+    fprintf(output_,"unknown value");
+  fprintf(output_," - 0x%.08x\n",w);
+
+  b = get_byte(buf_,4);
+  w = get_word(buf_,4);
+  fprintf(output_,"  self-relocating: ");
+  if(w == NOP)
+    fprintf(output_,"no");
+  else if(b == BL)
+    fprintf(output_,"yes");
+  else
+    fprintf(output_,"unknown value");
+  fprintf(output_," - 0x%.08x\n",w);
+
   b = tdo_aif_get_3do_flag(buf_);
   if(b != TDO_HEADER_VALUE)
     {
@@ -419,9 +559,14 @@ tdo_aif_print(FILE *output_,
       return;
     }
 
-  fprintf(output_,"3DO header is:\n");
+  fprintf(output_,"3DO header:\n");
 
   fprintf(output_,"  name: %s\n",tdo_aif_get_name(buf_));
+
+  fprintf(output_,
+          "  time: %d [%s]\n",
+          tdo_aif_get_time(buf_),
+          tdo_aif_get_time_str(buf_));
 
   w = tdo_aif_get_debug(buf_);
   switch(w)
@@ -438,10 +583,18 @@ tdo_aif_print(FILE *output_,
     }
 
   b = tdo_aif_get_subsystype(buf_);
-  fprintf(output_,"  subsystype: 0x%.2x (%d)\n",b,b);
+  fprintf(output_,
+          "  subsystype: 0x%.2x (%d) [%s]\n",
+          b,
+          b,
+          tdo_aif_get_subsystype_str(b));
 
   b = tdo_aif_get_type(buf_);
-  fprintf(output_,"  type: 0x%.2x (%d)\n",b,b);
+  fprintf(output_,
+          "  type: 0x%.2x (%d) [%s]\n",
+          b,
+          b,
+          tdo_aif_get_type_str(b));
 
   b = tdo_aif_get_priority(buf_);
   fprintf(output_,"  priority: 0x%.2x (%d)\n",b,b);
@@ -450,7 +603,11 @@ tdo_aif_print(FILE *output_,
   fprintf(output_,"  version: 0x%.2x (%d)\n",b,b);
 
   b = tdo_aif_get_flags(buf_);
-  fprintf(output_,"  flags: 0x%.2x (%d)\n",b,b);
+  fprintf(output_,
+          "  flags: 0x%.2x (%d) [%s]\n",
+          b,
+          b,
+          tdo_aif_get_flags_str(b));
 
   b = tdo_aif_get_osversion(buf_);
   fprintf(output_,"  osversion: 0x%.2x (%d)\n",b,b);
