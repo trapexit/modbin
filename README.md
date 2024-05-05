@@ -1,6 +1,15 @@
 # MODBIN
 
-modbin is a tool that was included in the 3DO SDK and is used to modify the 3DO executable's slightly custom AIF header. A homebrew version was released but only supports setting the "work space" value and the stack size. This tool offers all the same features found in the original tool with a few minor extras. Should compile on any C99 C compiler.
+The original `modbin` was a tool included in the 3DO SDK and is used
+to modify 3DO executable's slightly custom AIF header. It was also the
+name of a more advanced tool used by the 3DO Company to modify AIF
+headers more extensively and in combination with RSA signing tool to
+enable additional feature such as running libraries and tasks in a
+privileged mode.
+
+This tool offers all the same features found in the original `modbin`
+tools and the RSA signing tool with a few minor extras. Should
+compile with any C99 C compiler.
 
 
 # USAGE
@@ -14,6 +23,8 @@ Usage: modbin [options]... <input-file> [<output-file>]
   -V                        print modbin version
      --debug                enable debugging
      --nodebug              disable debugging
+     --subsystype=UNSIGNED  set folio subtype
+     --type=UNSIGNED        set folio node type
      --pri=UNSIGNED         set priority
      --version=UNSIGNED     set version number
      --flags=UNSIGNED       set app flags
@@ -23,6 +34,7 @@ Usage: modbin [options]... <input-file> [<output-file>]
      --freespace=UNSIGNED   set freespace
      --maxusecs=UNSIGNED    set maximum usecs
      --name=STRING          executable name
+     --time                 set time
      --reset                resets all values to default
      --sign=app|3do         sign executable
 ```
@@ -38,21 +50,16 @@ To print out the current values of a 3DO AIF executable just include an input fi
 $ git clone https://github.com/trapexit/modbin.git
 $ cd modbin
 $ make
+$ make release
 ```
 
 ### Windows (mingw)
 
-```
-$ sudo apt install gcc-mingw-w64
-$ git clone https://github.com/trapexit/modbin.git
-$ cd modbin
-$ make -f Makefile.win32
-$ make -f Makefile.win64
-```
+Same as Linux's `make release`. Uses an Alpine container to cross compile.
 
 
 # LINKS
 
 * https://3dodev.com
 * https://3dodev.com/documentation/file_formats/3do_aif_header
-* https://3dodev.com/ext/3DO/Portfolio_2.5/OnLineDoc/DevDocs/tktfldr/dbgfldr/Bdbga.html
+* https://3dodev.com/documentation/development/opera/pf25/tktfldr/dbgfldr/bdbga
