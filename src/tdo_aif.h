@@ -41,6 +41,7 @@ void tdo_aif_set_maxusecs(void *buf, uint32_t val);
 void tdo_aif_set_sig_offset(void *buf, uint32_t val);
 void tdo_aif_set_sig_size(void *buf, uint32_t val);
 void tdo_aif_set_name(void *buf, const char *val);
+void tdo_aif_set_time(void *buf);
 
 uint8_t     tdo_aif_get_3do_flag(void *buf);
 uint32_t    tdo_aif_get_debug(void *buf);
@@ -57,6 +58,7 @@ uint32_t    tdo_aif_get_maxusecs(void *buf);
 uint32_t    tdo_aif_get_sig_offset(void *buf);
 uint32_t    tdo_aif_get_sig_size(void *buf);
 const char *tdo_aif_get_name(void *buf);
+uint32_t    tdo_aif_get_time(void *buf);
 
 bool tdo_aif_is_aif(void *buf, size_t size);
 

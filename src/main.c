@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define MODBIN_VERSION "1.3.1"
+#define MODBIN_VERSION "1.4.0"
 
 static
 struct simple_opt*
@@ -38,23 +38,24 @@ simple_opt_options(void)
   static const char *key_set[] = {"app","3do",NULL};
   static struct simple_opt options[] =
     {
-     {SIMPLE_OPT_FLAG,       'h',"help",       false,"print this help message and exit"},
-     {SIMPLE_OPT_FLAG,       'V',NULL,         false,"print modbin version"},
-     {SIMPLE_OPT_FLAG,      '\0',"debug",      false,"enable debugging"},
-     {SIMPLE_OPT_FLAG,      '\0',"nodebug",    false,"disable debugging"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"subsystype", true, "set folio subtype"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"type",       true, "set folio node type"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"pri",        true, "set priority"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"version",    true, "set version number"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"flags",      true, "set app flags"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"osversion",  true, "set OS_version number"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"osrevision", true, "set OS_revision number"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"stack",      true, "set stack size"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"freespace",  true, "set freespace"},
-     {SIMPLE_OPT_UNSIGNED,  '\0',"maxusecs",   true, "set maximum usecs"},
-     {SIMPLE_OPT_STRING,    '\0',"name",       true, "executable name"},
-     {SIMPLE_OPT_FLAG,      '\0',"reset",      false,"resets all values to default"},
-     {SIMPLE_OPT_STRING_SET,'\0',"sign",       true, "sign executable","app|3do", key_set},
+     {SIMPLE_OPT_FLAG,       'h',"help",       false, "print this help message and exit"},
+     {SIMPLE_OPT_FLAG,       'V',NULL,         false, "print modbin version"},
+     {SIMPLE_OPT_FLAG,      '\0',"debug",      false, "enable debugging"},
+     {SIMPLE_OPT_FLAG,      '\0',"nodebug",    false, "disable debugging"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"subsystype", true,  "set folio subtype"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"type",       true,  "set folio node type"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"pri",        true,  "set priority"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"version",    true,  "set version number"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"flags",      true,  "set app flags"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"osversion",  true,  "set OS_version number"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"osrevision", true,  "set OS_revision number"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"stack",      true,  "set stack size"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"freespace",  true,  "set freespace"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"maxusecs",   true,  "set maximum usecs"},
+     {SIMPLE_OPT_STRING,    '\0',"name",       true,  "executable name"},
+     {SIMPLE_OPT_FLAG,      '\0',"time",       false, "set time"},
+     {SIMPLE_OPT_FLAG,      '\0',"reset",      false, "resets all values to default"},
+     {SIMPLE_OPT_STRING_SET,'\0',"sign",       true,  "sign executable","app|3do", key_set},
      {SIMPLE_OPT_END}
     };
 
@@ -148,6 +149,8 @@ main(int    argc_,
         tdo_aif_set_maxusecs(file_buf,options[i].val.v_unsigned);
       else if(streq(options[i].long_name,"name"))
         tdo_aif_set_name(file_buf,options[i].val.v_string);
+      else if(streq(options[i].long_name,"time"))
+        tdo_aif_set_time(file_buf);
       else if(streq(options[i].long_name,"reset"))
         tdo_aif_reset(file_buf,&file_size);
       else if(streq(options[i].long_name,"sign"))
