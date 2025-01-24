@@ -19,3 +19,4 @@
 #pragma once
 
 int tdo_aif_sign(void **buf, size_t *size, const char *key);
+int sign_file(void **buf, size_t *size, const char *key);
