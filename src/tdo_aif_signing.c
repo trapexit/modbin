@@ -146,18 +146,6 @@ sign_file(void       **buf_,
   buf  = *buf_;
   size = *size_;
 
-  if(tdo_aif_has_sig(buf))
-    {
-      fprintf(stderr,"WARNING: file already has signature. Ignoring.\n");
-      size -= tdo_aif_get_sig_size(buf);
-      tdo_aif_set_sig_size(buf,0);
-    }
-
-  if(!end_of_buffer_0xFFFFFFFF(buf,size))
-    fprintf(stderr,"WARNING: file doesn't appear to be an ARM executable. File last 4 bytes != 0xFF.\n");
-
-  tdo_aif_set_sig_offset(buf,size);
-
   calculate_md5(buf,size,digest);
 
   sign_md5_digest(key_,digest,sig);
