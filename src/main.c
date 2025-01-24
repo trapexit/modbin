@@ -111,11 +111,11 @@ main(int    argc_,
       exit(EXIT_FAILURE);
     }
 
-  if(!tdo_aif_is_aif(file_buf,file_size))
-    {
-      fprintf(stderr,"ERROR: does not appear to be a valid AIF file\n");
-      exit(EXIT_FAILURE);
-    }
+  /* if(!tdo_aif_is_aif(file_buf,file_size)) */
+  /*   { */
+  /*     fprintf(stderr,"ERROR: does not appear to be a valid AIF file\n"); */
+  /*     exit(EXIT_FAILURE); */
+  /*   } */
 
   sign = NULL;
   for(int i = 0; options[i].type != SIMPLE_OPT_END; i++)
