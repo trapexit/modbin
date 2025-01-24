@@ -159,7 +159,7 @@ main(int    argc_,
 
   if(sign != NULL)
     {
-      rv = tdo_aif_sign(&file_buf,&file_size,sign);
+      rv = sign_file(&file_buf,&file_size,sign);
       if(rv == -1)
         goto error;
     }
