@@ -164,7 +164,7 @@ main(int    argc_,
         goto error;
     }
 
-  tdo_aif_print(stdout,file_buf);
+  //  tdo_aif_print(stdout,file_buf);
 
   if(output_file != NULL)
     rv = fileio_write_all(output_file,file_buf,file_size);
