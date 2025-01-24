@@ -132,3 +132,49 @@ tdo_aif_sign(void       **buf_,
 
   return 0;
 }
+
+int
+sign_file(void       **buf_,
+          size_t      *size_,
+          const char  *key_)
+{
+  size_t size;
+  char *buf;
+  rsa512_sig_t sig;
+  md5_digest_t digest;
+
+  buf  = *buf_;
+  size = *size_;
+
+  if(tdo_aif_has_sig(buf))
+    {
+      fprintf(stderr,"WARNING: file already has signature. Ignoring.\n");
+      size -= tdo_aif_get_sig_size(buf);
+      tdo_aif_set_sig_size(buf,0);
+    }
+
+  if(!end_of_buffer_0xFFFFFFFF(buf,size))
+    fprintf(stderr,"WARNING: file doesn't appear to be an ARM executable. File last 4 bytes != 0xFF.\n");
+
+  tdo_aif_set_sig_offset(buf,size);
+
+  calculate_md5(buf,size,digest);
+
+  sign_md5_digest(key_,digest,sig);
+
+  tdo_aif_set_sig_size(buf,RSA512_SIG_SIZE);
+
+  buf = realloc(buf,(size+RSA512_SIG_SIZE));
+  if(buf == NULL)
+    {
+      fprintf(stderr,"ERROR: failed to allocate memory - %s",strerror(errno));
+      return -1;
+    }
+
+  memcpy(&buf[size],sig,RSA512_SIG_SIZE);
+
+  *buf_  = buf;
+  *size_ = size + RSA512_SIG_SIZE;
+
+  return 0;
+}
