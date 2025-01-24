@@ -103,7 +103,7 @@ tdo_aif_sign(void       **buf_,
   if(tdo_aif_has_sig(buf))
     {
       fprintf(stderr,"WARNING: file already has signature. Ignoring.\n");
-      size -= RSA512_SIG_SIZE;
+      size -= tdo_aif_get_sig_size(buf);
       tdo_aif_set_sig_size(buf,0);
     }
 
