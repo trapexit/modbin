@@ -150,8 +150,6 @@ sign_file(void       **buf_,
 
   sign_md5_digest(key_,digest,sig);
 
-  tdo_aif_set_sig_size(buf,RSA512_SIG_SIZE);
-
   buf = realloc(buf,(size+RSA512_SIG_SIZE));
   if(buf == NULL)
     {
