@@ -16,6 +16,8 @@
   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
+#include "tdo_aif.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -45,10 +47,8 @@
 #define SECONDS_PER_YEAR (365 * 24 * 60 * 60)
 
 #define TDO_HEADER_VALUE 0x40
-#define NOP              0xE1A00000
 #define DEBUG_VALUE      0xEF00010A
 #define NODEBUG_VALUE    0xE1A02002
-#define BL               0xEB
 
 #define KERNELNODE 1
 
@@ -475,7 +475,7 @@ tdo_aif_is_aif(void   *buf_,
   if(size_ < 256)
     return false;
 
-  if(get_word(buf_,0) != NOP && get_byte(buf_,0) != BL)
+  if(get_word(buf_,0) != TDO_AIF_NOP_INSTR && get_byte(buf_,0) != TDO_AIF_BL_OPCODE)
     return false;
 
   if(tdo_aif_get_sig_offset(buf_) && tdo_aif_get_sig_size(buf_))
@@ -533,9 +533,9 @@ tdo_aif_print(FILE *output_,
   b = get_byte(buf_,0);
   w = get_word(buf_,0);
   fprintf(output_,"  compressed: ");
-  if(w == NOP)
+  if(w == TDO_AIF_NOP_INSTR)
     fprintf(output_,"no");
-  else if(b == BL)
+  else if(b == TDO_AIF_BL_OPCODE)
     fprintf(output_,"yes");
   else
     fprintf(output_,"unknown value");
@@ -544,9 +544,9 @@ tdo_aif_print(FILE *output_,
   b = get_byte(buf_,4);
   w = get_word(buf_,4);
   fprintf(output_,"  self-relocating: ");
-  if(w == NOP)
+  if(w == TDO_AIF_NOP_INSTR)
     fprintf(output_,"no");
-  else if(b == BL)
+  else if(b == TDO_AIF_BL_OPCODE)
     fprintf(output_,"yes");
   else
     fprintf(output_,"unknown value");

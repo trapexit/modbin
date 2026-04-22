@@ -23,6 +23,18 @@
 #include <stdio.h>
 
 
+/* 3DO AIF executable header size. The header occupies the first
+   0x100 bytes of every AIF image; the body follows immediately. */
+#define TDO_AIF_HEADER_SIZE 0x100u
+
+/* ARM instruction constants used in AIF images. The first word of
+   an AIF is either a NOP (uncompressed) or a BL into the
+   decompressor stub (compressed). BL_OPCODE is the top byte of the
+   ARM BL instruction encoding. */
+#define TDO_AIF_NOP_INSTR   0xE1A00000u
+#define TDO_AIF_BL_OPCODE   0xEBu
+
+
 void tdo_aif_set_3do_flag(void *buf);
 void tdo_aif_reset_3do_flag(void *buf);
 

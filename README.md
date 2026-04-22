@@ -23,6 +23,8 @@ Usage: modbin [options]... <input-file> [<output-file>]
   -V                        print modbin version
      --debug                enable debugging
      --nodebug              disable debugging
+     --compress             compress executable
+     --decompress           decompress executable
      --subsystype=UNSIGNED  set folio subtype
      --type=UNSIGNED        set folio node type
      --pri=UNSIGNED         set priority
@@ -40,6 +42,15 @@ Usage: modbin [options]... <input-file> [<output-file>]
 ```
 
 To print out the current values of a 3DO AIF executable just include an input file. You can also combine that with the other options to confirm what gets set and their values. If you wish to create a new file set the output. The new file can be the same as the original if you wish to overwrite it. Be sure to re-sign if changing the values of a signed executable.
+
+`--compress` / `--decompress` implement the 3DO AIF order-1 byte-predictor
+compression format (the one used by the stock Opera privileged folios). They
+may be combined with the other flags; compress/decompress runs first and the
+remaining flags (including `--sign`) are applied to the resulting binary.
+`--compress` is idempotent: if the input is already compressed it is
+decompressed in-memory first, then re-compressed. It declines (writes the
+input unchanged and warns on stderr) when the decompressor stub's scratch
+requirement cannot be met or the result would not be smaller than the input.
 
 
 # BUILD

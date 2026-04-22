@@ -21,6 +21,7 @@
 #include "simple-opt.h"
 #include "str.h"
 #include "tdo_aif.h"
+#include "tdo_aif_compress.h"
 #include "tdo_aif_signing.h"
 
 #include <assert.h>
@@ -42,6 +43,8 @@ simple_opt_options(void)
      {SIMPLE_OPT_FLAG,       'V',NULL,         false, "print modbin version"},
      {SIMPLE_OPT_FLAG,      '\0',"debug",      false, "enable debugging"},
      {SIMPLE_OPT_FLAG,      '\0',"nodebug",    false, "disable debugging"},
+     {SIMPLE_OPT_FLAG,      '\0',"compress",   false, "compress executable"},
+     {SIMPLE_OPT_FLAG,      '\0',"decompress", false, "decompress executable"},
      {SIMPLE_OPT_UNSIGNED,  '\0',"subsystype", true,  "set folio subtype"},
      {SIMPLE_OPT_UNSIGNED,  '\0',"type",       true,  "set folio node type"},
      {SIMPLE_OPT_UNSIGNED,  '\0',"pri",        true,  "set priority"},
@@ -116,6 +119,64 @@ main(int    argc_,
       fprintf(stderr,"ERROR: does not appear to be a valid AIF file\n");
       exit(EXIT_FAILURE);
     }
+
+  {
+    bool do_compress   = false;
+    bool do_decompress = false;
+    for(int i = 0; options[i].type != SIMPLE_OPT_END; i++)
+      {
+        if(!options[i].was_seen)
+          continue;
+        if(streq(options[i].long_name,"compress"))
+          do_compress = true;
+        else if(streq(options[i].long_name,"decompress"))
+          do_decompress = true;
+      }
+
+    if(do_compress && do_decompress)
+      {
+        fprintf(stderr,"ERROR: --compress and --decompress are mutually exclusive\n");
+        exit(EXIT_FAILURE);
+      }
+
+    if(do_decompress || do_compress)
+      {
+        uint8_t *new_buf  = NULL;
+        size_t   new_size = 0;
+
+        if(do_decompress)
+          rv = tdo_aif_decompress((const uint8_t*)file_buf,file_size,
+                                  &new_buf,&new_size);
+        else
+          {
+            TdoAifCompressStatus status;
+
+            status = tdo_aif_compress((const uint8_t*)file_buf,file_size,
+                                      &new_buf,&new_size);
+
+            if(status == TdoAifCompressStatus_DECLINED_UNSAFE)
+              fprintf(stderr,"WARNING: %s: compression declined (the decompressor "
+                             "stub would need more scratch than this image "
+                             "provides) - writing the input unchanged\n",input_file);
+            else if(status == TdoAifCompressStatus_DECLINED_GROWTH)
+              fprintf(stderr,"WARNING: %s: compression declined (the compressed "
+                             "image would not be smaller) - writing the input "
+                             "unchanged\n",input_file);
+
+            rv = ((status == TdoAifCompressStatus_ERROR) ? -1 : 0);
+          }
+        if(rv != 0)
+          {
+            fprintf(stderr,"ERROR: %s failed\n",
+                    do_compress ? "compression" : "decompression");
+            free(file_buf);
+            exit(EXIT_FAILURE);
+          }
+        free(file_buf);
+        file_buf  = new_buf;
+        file_size = new_size;
+      }
+  }
 
   sign = NULL;
   for(int i = 0; options[i].type != SIMPLE_OPT_END; i++)

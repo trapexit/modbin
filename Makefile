@@ -67,7 +67,9 @@ win-x86_64-release:
 release: clean
 	docker run --rm -it -e PUID=$(PUID) -e PGID=$(PGID) -v ${PWD}:/src alpine:edge "/src/buildtools/docker-make-release"
 
+test: $(OUTPUT)
+	python3 tests/aif_compress_test.py $(OUTPUT)
 
-.PHONY: clean builddir release
+.PHONY: clean builddir release test
 
 -include $(DEPS)
