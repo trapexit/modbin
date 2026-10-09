@@ -51,13 +51,25 @@ else
 endif
 OBJS := $(SRCS_C:src/%.c=$(BUILDDIR)/%.c.o)
 OBJS += $(SRCS_CXX:src/%.cpp=$(BUILDDIR)/%.cpp.o)
-DEPS  = $(OBJS:.o=.d)
+TEST_OBJS := $(BUILDDIR)/bigdigits_test.c.o
+TEST_OUTPUT := $(BUILDDIR)/bigdigits_test
+DEPS = $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 
 all: $(OUTPUT)
 
 $(OUTPUT): builddir $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(OUTPUT) $(OBJS) $(LDFLAGS)
+
+test: $(OUTPUT) $(TEST_OUTPUT)
+	UBSAN_OPTIONS="$(UBSAN_OPTIONS):halt_on_error=1" $(TEST_OUTPUT)
+	$(PYTHON) tests/signing_test.py $(OUTPUT)
+
+$(TEST_OUTPUT): $(TEST_OBJS) $(BUILDDIR)/bigdigits.c.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(TEST_OBJS): tests/bigdigits_test.c | builddir
+	$(CC) $(CPPFLAGS) $(CFLAGS) -UNDEBUG -Isrc -c $< -o $@
 
 strip: $(OUTPUT)
 	$(STRIP) --strip-all $(OUTPUT)
@@ -122,6 +134,6 @@ install-release:
 	install -Dm755 "build/$(FILENAME)_x86_64-linux-musl" "$(DESTDIR)$(TDO_DEVKIT_PATH)/bin/tools/linux/$(FILENAME)"
 	install -Dm755 "build/$(FILENAME)_x86_64-windows-gnu.exe" "$(DESTDIR)$(TDO_DEVKIT_PATH)/bin/tools/win/$(FILENAME).exe"
 
-.PHONY: all clean builddir release zig-venv strip install-release
+.PHONY: all test clean builddir release zig-venv strip install-release
 
 -include $(DEPS)

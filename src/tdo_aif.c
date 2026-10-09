@@ -96,10 +96,10 @@ uint32_t
 get_word(const uint8_t *buf_,
          size_t         off_)
 {
-  return (((uint8_t)buf_[off_ + 0] << 24) |
-          ((uint8_t)buf_[off_ + 1] << 16) |
-          ((uint8_t)buf_[off_ + 2] <<  8) |
-          ((uint8_t)buf_[off_ + 3] <<  0));
+  return ((((uint32_t)buf_[off_ + 0]) << 24) |
+          (((uint32_t)buf_[off_ + 1]) << 16) |
+          (((uint32_t)buf_[off_ + 2]) <<  8) |
+           ((uint32_t)buf_[off_ + 3]));
 }
 
 void

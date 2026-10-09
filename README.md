@@ -72,6 +72,22 @@ The default build uses `-Os -flto -static` and produces `build/modbin`.
 Use `make clean && make DEBUG=1` for an unoptimized debug build without static
 linking or LTO. `SANITIZE=1` enables the undefined-behavior sanitizer.
 
+Run arithmetic boundary tests and compare actual CLI signatures against an
+independent Python MD5/RSA calculation:
+
+```sh
+$ make test
+$ make test DEBUG=1 SANITIZE=1 TARGET=ubsan
+```
+
+The sanitizer build uses a separate object directory; sanitizer diagnostics
+are fatal in both regression runners. The CLI signing test also accepts a
+runner prefix, for example:
+
+```sh
+$ python3 tests/signing_test.py qemu-aarch64 build/modbin_aarch64-linux-musl
+```
+
 ### Release builds
 
 Release builds use Zig to cross-compile four targets sequentially. Docker and
@@ -124,6 +140,19 @@ The AArch64 Linux and macOS binaries remain in `build/`; the devkit uses the
 Linux and Windows tool directories above. `DESTDIR` can stage the installation
 without changing the active devkit, for example
 `make install-release DESTDIR=/tmp/stage`.
+
+### Vendored arithmetic
+
+RSA signing uses the five core files from
+[BigDigits 2.8.0](https://di-mgt.com.au/bigdigits.html) (MPL-2.0).
+Digits remain 32-bit; the default implementation uses 64-bit intermediates
+for multiplication and division. `USE_32ONLY` selects 32-bit-only arithmetic.
+
+Local patches omit the unused compile-time timestamp accessors for Zig's
+reproducible-build checks, avoid full-width shifts when the bit remainder is
+zero, and construct bit masks in the unsigned digit type. These shift fixes
+prevent incorrect RSA signatures in optimized builds. AIF header words are
+also assembled as unsigned 32-bit values to avoid signed-shift overflow.
 
 
 # LINKS

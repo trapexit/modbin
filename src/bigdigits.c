@@ -1167,7 +1167,10 @@ DIGIT_T mpShiftLeft(DIGIT_T a[], const DIGIT_T *b,
 	carry = 0;
 	for (i = 0; i < ndigits; i++)
 	{
-		nextcarry = (b[i] & mask) >> y;
+		/* [UB fix] y is BITS_PER_DIGIT when bits is 0; shifting a DIGIT_T by
+		   a full digit width is undefined, and the mask is 0 in that case
+		   anyway, so the carry is 0. */
+		nextcarry = ((y >= BITS_PER_DIGIT) ? (DIGIT_T)0 : ((b[i] & mask) >> y));
 		a[i] = b[i] << bits | carry;
 		carry = nextcarry;
 	}
@@ -1213,7 +1216,10 @@ DIGIT_T mpShiftRight(DIGIT_T a[], const DIGIT_T b[], size_t shift, size_t ndigit
 	i = ndigits;
 	while (i--)
 	{
-		nextcarry = (b[i] & mask) << y;
+		/* [UB fix] y is BITS_PER_DIGIT when bits is 0; shifting a DIGIT_T by
+		   a full digit width is undefined, and the mask is 0 in that case
+		   anyway, so the carry is 0. */
+		nextcarry = ((y >= BITS_PER_DIGIT) ? (DIGIT_T)0 : ((b[i] & mask) << y));
 		a[i] = b[i] >> bits | carry;
 		carry = nextcarry;
 	}
@@ -1234,7 +1240,7 @@ int mpSetBit(DIGIT_T a[], size_t ndigits, size_t ibit, int value)
 
 	/* Set mask */
 	bit_to_set = ibit % BITS_PER_DIGIT;
-	mask = 0x01 << bit_to_set;
+	mask = (DIGIT_T)1 << bit_to_set;
 
 	if (value)
 		a[idigit] |= mask;
@@ -1257,7 +1263,7 @@ int mpGetBit(const DIGIT_T a[], size_t ndigits, size_t ibit)
 
 	/* Set mask */
 	bit_to_get = ibit % BITS_PER_DIGIT;
-	mask = 0x01 << bit_to_get;
+	mask = (DIGIT_T)1 << bit_to_get;
 
 	return ((a[idigit] & mask) ? 1 : 0);
 }
