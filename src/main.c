@@ -45,6 +45,8 @@ simple_opt_options(void)
      {SIMPLE_OPT_FLAG,      '\0',"nodebug",    false, "disable debugging"},
      {SIMPLE_OPT_FLAG,      '\0',"compress",   false, "compress executable"},
      {SIMPLE_OPT_FLAG,      '\0',"decompress", false, "decompress executable"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"workspace",  true,  "set full AIF workspace word (0..4294967295)"},
+     {SIMPLE_OPT_UNSIGNED,  '\0',"revision",   true,  "set revision number (0..255)"},
      {SIMPLE_OPT_UNSIGNED,  '\0',"subsystype", true,  "set folio subtype"},
      {SIMPLE_OPT_UNSIGNED,  '\0',"type",       true,  "set folio node type"},
      {SIMPLE_OPT_UNSIGNED,  '\0',"pri",        true,  "set priority"},
@@ -188,6 +190,10 @@ main(int    argc_,
         tdo_aif_set_debug(file_buf);
       else if(streq(options[i].long_name,"nodebug"))
         tdo_aif_set_nodebug(file_buf);
+      else if(streq(options[i].long_name,"workspace"))
+        tdo_aif_set_workspace(file_buf,options[i].val.v_unsigned);
+      else if(streq(options[i].long_name,"revision"))
+        tdo_aif_set_revision(file_buf,options[i].val.v_unsigned);
       else if(streq(options[i].long_name,"subsystype"))
         tdo_aif_set_subsystype(file_buf,options[i].val.v_unsigned);
       else if(streq(options[i].long_name,"type"))

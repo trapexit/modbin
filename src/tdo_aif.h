@@ -37,6 +37,8 @@
 
 void tdo_aif_set_3do_flag(void *buf);
 void tdo_aif_reset_3do_flag(void *buf);
+void tdo_aif_set_workspace(void *buf, uint32_t val);
+void tdo_aif_set_revision(void *buf, uint8_t val);
 
 void tdo_aif_set_debug(void *buf);
 void tdo_aif_set_nodebug(void *buf);

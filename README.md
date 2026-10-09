@@ -25,6 +25,8 @@ Usage: modbin [options]... <input-file> [<output-file>]
      --nodebug              disable debugging
      --compress             compress executable
      --decompress           decompress executable
+     --workspace=UNSIGNED   set full AIF workspace word (0..4294967295)
+     --revision=UNSIGNED    set revision number (0..255)
      --subsystype=UNSIGNED  set folio subtype
      --type=UNSIGNED        set folio node type
      --pri=UNSIGNED         set priority

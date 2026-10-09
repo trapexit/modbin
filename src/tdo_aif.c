@@ -32,6 +32,7 @@
 #define TYPE_OFFSET       0x89
 #define PRIORITY_OFFSET   0x8A
 #define VERSION_OFFSET    0x94
+#define REVISION_OFFSET   0x95
 #define FLAGS_OFFSET      0xA4
 #define OSVERSION_OFFSET  0xA5
 #define OSREVISION_OFFSET 0xA6
@@ -108,6 +109,13 @@ tdo_aif_set_3do_flag(void *buf_)
 }
 
 void
+tdo_aif_set_workspace(void   *buf_,
+                      uint32_t  val_)
+{
+  set_word(buf_,TDO_HEADER_OFFSET,val_);
+}
+
+void
 tdo_aif_reset_3do_flag(void *buf_)
 {
   set_byte(buf_,TDO_HEADER_OFFSET,0x00);
@@ -159,6 +167,15 @@ tdo_aif_set_version(void    *buf_,
   tdo_aif_set_3do_flag(buf_);
   set_byte(buf_,VERSION_OFFSET,val_);
 }
+
+void
+tdo_aif_set_revision(void    *buf_,
+                      uint8_t  val_)
+{
+  tdo_aif_set_3do_flag(buf_);
+  set_byte(buf_,REVISION_OFFSET,val_);
+}
+
 
 void
 tdo_aif_set_flags(void    *buf_,
