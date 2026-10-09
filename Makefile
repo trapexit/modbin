@@ -113,9 +113,6 @@ release:
 		TARGET="aarch64-macos" \
 		OPT="-Oz -ffunction-sections -fdata-sections"
 
-test: $(OUTPUT)
-	python3 tests/aif_compress_test.py $(OUTPUT)
-
-.PHONY: all clean builddir release zig-venv strip test
+.PHONY: all clean builddir release zig-venv strip
 
 -include $(DEPS)

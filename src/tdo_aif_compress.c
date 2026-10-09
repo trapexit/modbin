@@ -152,13 +152,17 @@ tdo_aif_decompress_body(const uint8_t  *stream_,
     return -1;
 
   word_count = rd_be32(stream_);
+  out_len = ((size_t)word_count * WORD_SIZE);
+  if((out_len / WORD_SIZE) != word_count)
+    return -1;
+
   pos        = WORD_SIZE;
 
   pos = read_dict(stream_, stream_size_, pos, dict);
   if(pos == 0)
     return -1;
 
-  out = (uint8_t*)malloc(word_count ? (size_t)word_count * WORD_SIZE : 1);
+  out = (uint8_t*)malloc(out_len ? out_len : 1);
   if(out == NULL)
     return -1;
 

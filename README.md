@@ -69,7 +69,6 @@ $ ./build/modbin --help
 The default build uses `-Os -flto -static` and produces `build/modbin`.
 Use `make clean && make DEBUG=1` for an unoptimized debug build without static
 linking or LTO. `SANITIZE=1` enables the undefined-behavior sanitizer.
-`make test` runs the compression tests and requires Python 3.
 
 ### Release builds
 

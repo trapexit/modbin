@@ -94,6 +94,7 @@ int tdo_aif_compress_body(const uint8_t  *body_,
 /*
   Decode a raw compressed stream (no AIF header, no decompressor stub)
   as produced by tdo_aif_compress_body into its original body bytes.
+  Rejects decoded byte counts that cannot be represented by size_t.
 */
 int tdo_aif_decompress_body(const uint8_t  *stream_,
                             size_t          stream_size_,
