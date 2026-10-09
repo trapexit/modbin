@@ -113,6 +113,15 @@ release:
 		TARGET="aarch64-macos" \
 		OPT="-Oz -ffunction-sections -fdata-sections"
 
-.PHONY: all clean builddir release zig-venv strip
+install-release:
+	@test -n "$(TDO_DEVKIT_PATH)" || { \
+		echo "3do-devkit environment not sourced; source /path/to/3do-devkit/activate-env first." >&2; \
+		exit 1; \
+	}
+	$(MAKE) release
+	install -Dm755 "build/$(FILENAME)_x86_64-linux-musl" "$(DESTDIR)$(TDO_DEVKIT_PATH)/bin/tools/linux/$(FILENAME)"
+	install -Dm755 "build/$(FILENAME)_x86_64-windows-gnu.exe" "$(DESTDIR)$(TDO_DEVKIT_PATH)/bin/tools/win/$(FILENAME).exe"
+
+.PHONY: all clean builddir release zig-venv strip install-release
 
 -include $(DEPS)

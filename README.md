@@ -106,6 +106,25 @@ LTO. macOS uses dynamic linking without LTO, with Mach-O dead-strip/strip flags.
 Release builds use `DEBUG=0` even if the invoking make specifies `DEBUG=1`.
 The former 32-bit Windows release is no longer built.
 
+### Install release tools into 3do-devkit
+
+```sh
+$ source /path/to/3do-devkit/activate-env
+$ make zig-venv
+$ make install-release
+```
+
+`install-release` requires `TDO_DEVKIT_PATH` from the sourced environment.
+It runs the full `make release` build, then replaces the devkit's tools with:
+
+* x86-64 Linux: `$TDO_DEVKIT_PATH/bin/tools/linux/modbin`
+* x86-64 Windows: `$TDO_DEVKIT_PATH/bin/tools/win/modbin.exe`
+
+The AArch64 Linux and macOS binaries remain in `build/`; the devkit uses the
+Linux and Windows tool directories above. `DESTDIR` can stage the installation
+without changing the active devkit, for example
+`make install-release DESTDIR=/tmp/stage`.
+
 
 # LINKS
 
