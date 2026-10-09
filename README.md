@@ -93,7 +93,7 @@ $ python3 tests/signing_test.py qemu-aarch64 build/modbin_aarch64-linux-musl
 Release builds use Zig to cross-compile four targets sequentially. Docker and
 separate MinGW toolchains are no longer required. If `zig` is on `PATH`, it is
 used directly; its version is not pinned. Otherwise, optionally provision the
-pinned `ziglang==0.16.0` package:
+pinned `ziglang==0.17.0` package:
 
 ```sh
 $ make zig-venv

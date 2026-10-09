@@ -91,7 +91,7 @@ ifneq ($(SYSTEM_ZIG),)
 	@echo "Using system Zig: $(SYSTEM_ZIG)"
 else
 	$(PYTHON) -m venv "$(ZIG_VENV)"
-	"$(ZIG_VENV)/bin/python" -m pip install "ziglang==0.16.0"
+	"$(ZIG_VENV)/bin/python" -m pip install "ziglang==0.17.0"
 endif
 
 release:
