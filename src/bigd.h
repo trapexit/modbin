@@ -656,8 +656,6 @@ int bdVersion(void);
 		 * USE_SPASM will take precedence over USE_64WITH32.
 	 */
 
-/** Returns a pointer to a static string containing the time of compilation */
-const char *bdCompileTime(void);
 
 
 #undef T /* (for opaque BIGD pointer) */

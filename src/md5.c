@@ -55,14 +55,14 @@
 #define GET(n)                                  \
   SET(n)
 #else
-#define SET(n)                                  \
-  (ctx->block[(n)] =                            \
-    (((md5_u32_t)ptr[(n) * 4 + 0] << 0x00) |    \
-     ((md5_u32_t)ptr[(n) * 4 + 1] << 0x08) |    \
-     ((md5_u32_t)ptr[(n) * 4 + 2] << 0x10) |    \
-     ((md5_u32_t)ptr[(n) * 4 + 3] << 0x18))
-#define GET(n)                                  \
-  (ctx->block[(n)])
+#define SET(n)                                                  \
+  (ctx_->block[(n)] =                                            \
+   (((((md5_u32_t)ptr[(((n) * 4) + 0)]) << 0x00) |                 \
+     (((md5_u32_t)ptr[(((n) * 4) + 1)]) << 0x08)) |                \
+    ((((md5_u32_t)ptr[(((n) * 4) + 2)]) << 0x10) |                 \
+     (((md5_u32_t)ptr[(((n) * 4) + 3)]) << 0x18))))
+#define GET(n)                                                  \
+  (ctx_->block[(n)])
 #endif
 
 /*

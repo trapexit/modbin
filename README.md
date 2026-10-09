@@ -55,18 +55,55 @@ requirement cannot be met or the result would not be smaller than the input.
 
 # BUILD
 
-### Linux / macOS
+### Native build
 
-```
+Requires GNU Make and a native C/C++ compiler toolchain. Zig is not required.
+
+```sh
 $ git clone https://github.com/trapexit/modbin.git
 $ cd modbin
 $ make
+$ ./build/modbin --help
+```
+
+The default build uses `-Os -flto -static` and produces `build/modbin`.
+Use `make clean && make DEBUG=1` for an unoptimized debug build without static
+linking or LTO. `SANITIZE=1` enables the undefined-behavior sanitizer.
+`make test` runs the compression tests and requires Python 3.
+
+### Release builds
+
+Release builds use Zig to cross-compile four targets sequentially. Docker and
+separate MinGW toolchains are no longer required. If `zig` is on `PATH`, it is
+used directly; its version is not pinned. Otherwise, optionally provision the
+pinned `ziglang==0.16.0` package:
+
+```sh
+$ make zig-venv
 $ make release
 ```
 
-### Windows (mingw)
+`make zig-venv` uses the system Zig when available and otherwise creates `.venv`.
+Provisioning requires Python 3 with `venv`/pip support and network access to
+download the package. You can instead supply your own Zig installation.
+Override `ZIG` to select the executable, `PYTHON` to select the provisioning
+interpreter, or `ZIG_VENV` to change the virtual-environment directory (default:
+`.venv`). Without a system Zig or an explicit `ZIG` override, builds use
+`$(ZIG_VENV)/bin/python-zig`.
 
-Same as Linux's `make release`. Uses an Alpine container to cross compile.
+`make release` checks Zig before cleaning `build/`, then produces:
+
+* `build/modbin_x86_64-linux-musl`
+* `build/modbin_aarch64-linux-musl`
+* `build/modbin_x86_64-windows-gnu.exe`
+* `build/modbin_aarch64-macos`
+
+Each target has its own object directory under `build/`. Linux releases use
+static linking, LTO, section garbage collection, and linker stripping. Windows
+uses static linking, section garbage collection, and linker stripping without
+LTO. macOS uses dynamic linking without LTO, with Mach-O dead-strip/strip flags.
+Release builds use `DEBUG=0` even if the invoking make specifies `DEBUG=1`.
+The former 32-bit Windows release is no longer built.
 
 
 # LINKS

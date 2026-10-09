@@ -164,11 +164,6 @@ int mpVersion(void)
 	return (kMajor * 1000 + kMinor * 100 + kRelease * 10 + kUseSpasm + kUse64with32 + kUseNoAllocs);
 }
 
-/* Added [v2.6] */
-const char *mpCompileTime(void)
-{
-	return __DATE__" "__TIME__;
-}
 
 /**************************************/
 /* CORE SINGLE PRECISION CALCULATIONS */
@@ -3061,7 +3056,7 @@ done:
 /**	Computes y = x^e mod m in constant time using Coron's algorithm */
 int mpModExp_ct(DIGIT_T yout[], const DIGIT_T x[], const DIGIT_T e[], DIGIT_T m[], size_t ndigits)
 {	
-	/* Algorithm: Coron’s exponentiation (left-to-right)
+	/* Algorithm: Coronâ€™s exponentiation (left-to-right)
 	 * Square-and-multiply resistant against simple power attacks (SPA)
 	 * Ref: Jean-Sebastian Coron, "Resistance Against Differential Power Analysis for 
 	 * Elliptic Curve Cryptosystems", August 1999.

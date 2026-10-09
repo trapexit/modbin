@@ -1555,9 +1555,4 @@ int bdVersion(void)
 	return mpVersion();
 }
 
-/* Added [v2.6] */
-const char *bdCompileTime(void)
-{
-	return __DATE__" "__TIME__;
-}
 

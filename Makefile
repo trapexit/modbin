@@ -1,21 +1,36 @@
-EXE = modbin
-COMPILER_PREFIX =
-PLATFORM := $(shell uname -s | tr A-Z a-z)_$(shell arch)
+FILENAME := modbin
+
+ifdef TARGET
+  EXE := $(FILENAME)_$(TARGET)
+else
+  EXE := $(FILENAME)
+endif
 
 JOBS := $(shell nproc)
-PUID := $(shell id -u)
-PGID := $(shell id -g)
 
 OUTPUT = build/$(EXE)
 
-CC    = $(COMPILER_PREFIX)-gcc
-CXX   = $(COMPILER_PREFIX)-g++
-STRIP = $(COMPILER_PREFIX)-strip
+.DEFAULT_GOAL := all
+
+CC    ?= gcc
+CXX   ?= g++
+STRIP ?= strip
+PYTHON ?= python3
+ZIG_VENV ?= .venv
+SYSTEM_ZIG := $(shell command -v zig 2>/dev/null)
+ZIG ?= $(if $(SYSTEM_ZIG),$(SYSTEM_ZIG),$(abspath $(ZIG_VENV))/bin/python-zig)
 
 ifeq ($(DEBUG),1)
 OPT := -O0 -ggdb
 else
 OPT := -Os -flto -static
+ifneq ($(TARGET),)
+  ifneq ($(filter %macos,$(TARGET)),)
+    LDFLAGS += -Wl,-dead_strip -Wl,-S -Wl,-x
+  else
+    LDFLAGS += -Wl,--gc-sections -Wl,--strip-all
+  endif
+endif
 endif
 
 ifeq ($(SANITIZE),1)
@@ -29,7 +44,11 @@ CPPFLAGS ?= -MMD -MP
 SRCS_C   := $(wildcard src/*.c)
 SRCS_CXX := $(wildcard src/*.cpp)
 
-BUILDDIR = build/$(PLATFORM)
+ifdef TARGET
+  BUILDDIR = build/$(TARGET)
+else
+  BUILDDIR = build
+endif
 OBJS := $(SRCS_C:src/%.c=$(BUILDDIR)/%.c.o)
 OBJS += $(SRCS_CXX:src/%.cpp=$(BUILDDIR)/%.cpp.o)
 DEPS  = $(OBJS:.o=.d)
@@ -55,21 +74,48 @@ clean:
 builddir:
 	mkdir -p $(BUILDDIR)
 
-linux-release:
-	$(MAKE) -j$(JOBS) EXE=$(EXE)_$(PLATFORM) strip
+zig-venv:
+ifneq ($(SYSTEM_ZIG),)
+	@echo "Using system Zig: $(SYSTEM_ZIG)"
+else
+	$(PYTHON) -m venv "$(ZIG_VENV)"
+	"$(ZIG_VENV)/bin/python" -m pip install "ziglang==0.16.0"
+endif
 
-win-i686-release:
-	$(MAKE) -j$(JOBS) COMPILER_PREFIX=i686-w64-mingw32 PLATFORM=win_i686 EXE=$(EXE)_win_i686.exe strip
-
-win-x86_64-release:
-	$(MAKE) -j$(JOBS) COMPILER_PREFIX=x86_64-w64-mingw32 PLATFORM=win_x86_64 EXE=$(EXE)_win_x86_64.exe strip
-
-release: clean
-	docker run --rm -it -e PUID=$(PUID) -e PGID=$(PGID) -v ${PWD}:/src alpine:edge "/src/buildtools/docker-make-release"
+release:
+	@"$(ZIG)" version >/dev/null 2>&1 || { \
+		echo "Zig not found; run 'make zig-venv' first." >&2; \
+		exit 1; \
+	}
+	$(MAKE) clean
+	$(MAKE) DEBUG=0 -j$(JOBS) \
+		CC="$(ZIG) cc -target x86_64-linux-musl" \
+		CXX="$(ZIG) c++ -target x86_64-linux-musl" \
+		STRIP="$(ZIG) llvm-strip" \
+		TARGET="x86_64-linux-musl" \
+		OPT="-Oz -flto -ffunction-sections -fdata-sections -static"
+	$(MAKE) DEBUG=0 -j$(JOBS) \
+		CC="$(ZIG) cc -target aarch64-linux-musl" \
+		CXX="$(ZIG) c++ -target aarch64-linux-musl" \
+		STRIP="$(ZIG) llvm-strip" \
+		TARGET="aarch64-linux-musl" \
+		OPT="-Oz -flto -ffunction-sections -fdata-sections -static"
+	$(MAKE) DEBUG=0 -j$(JOBS) \
+		CC="$(ZIG) cc -target x86_64-windows-gnu" \
+		CXX="$(ZIG) c++ -target x86_64-windows-gnu" \
+		STRIP="$(ZIG) llvm-strip" \
+		TARGET="x86_64-windows-gnu.exe" \
+		OPT="-Oz -ffunction-sections -fdata-sections -static"
+	$(MAKE) DEBUG=0 -j$(JOBS) \
+		CC="$(ZIG) cc -target aarch64-macos" \
+		CXX="$(ZIG) c++ -target aarch64-macos" \
+		STRIP="$(ZIG) llvm-strip" \
+		TARGET="aarch64-macos" \
+		OPT="-Oz -ffunction-sections -fdata-sections"
 
 test: $(OUTPUT)
 	python3 tests/aif_compress_test.py $(OUTPUT)
 
-.PHONY: clean builddir release test
+.PHONY: all clean builddir release zig-venv strip test
 
 -include $(DEPS)
