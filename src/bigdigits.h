@@ -1,25 +1,19 @@
 /* $Id: bigdigits.h $ */
 
-/** @file
-	Interface to core BigDigits "mp" functions using fixed-length arrays 
-*/
-
-/***** BEGIN LICENSE BLOCK *****
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2001-16 David Ireland, D.I. Management Services Pty Limited
- * <http://www.di-mgt.com.au/bigdigits.html>. All rights reserved.
- *
- ***** END LICENSE BLOCK *****/
 /*
+ * Copyright (C) 2001-26 David Ireland, D.I. Management Services Pty Limited
+ * <https://di-mgt.com.au/contact/> <https://di-mgt.com.au/bigdigits.html>
+ * SPDX-License-Identifier: MPL-2.0
+ *
  * Last updated:
- * $Date: 2016-03-31 09:51:00 $
- * $Revision: 2.6.1 $
+ * $Date: 2026-04-29 05:59:00 $
+ * $Revision: 2.8.0 $
  * $Author: dai $
  */
+
+/** @file
+Interface to core BigDigits "mp" functions using fixed-length arrays
+*/
 
 #ifndef BIGDIGITS_H_
 #define BIGDIGITS_H_ 1
@@ -65,12 +59,14 @@ typedef uint16_t HALF_DIGIT_T;
 /**** END OF USER CONFIGURABLE SECTION ****/
 
 /**** OPTIONAL PREPROCESSOR DEFINITIONS ****/
-/* 
-   Choose one of {USE_SPASM | USE_64WITH32}
-   USE_SPASM: to use the faster x86 ASM routines (if __asm option is available with your compiler).
-   USE_64WITH32: to use the 64-bit integers if available (e.g. long long).
-   Default: use default internal routines spDivide and spMultiply.
-   The USE_SPASM option takes precedence over USE_64WITH32.
+/* [Changed in v2.8]
+	The default [v2.8] is to use 64-bit integers (formerly the USE_64WITH32 option).
+	Or choose one of
+	USE_SPASM: to use the faster x86 ASM routines (on Intel processors where the __asm option is available with your compiler); or
+	USE_32ONLY: if 64-bit integers and __asm are not available.
+	The USE_SPASM option takes precedence over USE_32ONLY.
+
+	[v2.7] Define NO_WINGUI to avoid using Windows GUI function MessageBox.
 */
 
 /* Useful macros */
@@ -465,13 +461,20 @@ size_t mpConvFromHex(DIGIT_T a[], size_t ndigits, const char *s);
 @return number of chars required excluding leading zeroes. */
 size_t mpConvToHex(const DIGIT_T a[], size_t ndigits, char *s, size_t smax);
 
+/** Converts a string of digits in the specified radix `base` to a big digit array.
+ *  Supported bases are 10 (decimal), 16 (hexadecimal), and 2 (binary).
+ *  The conversion stops at the first invalid character or end of string.
+ *  Sets `endptr` to point to the first character that could not be converted, similar to ANSI `strtoul`.
+ *  If `base` is 0 then base 10 is assumed unless the prefix `0x` or `0b` is present, 
+ *  denoting base 16 or base 2 respectively.
+ */
+size_t mpConvFromStr(DIGIT_T a[], size_t ndigits, const char *s, char **endptr, int base);
 
 /****************************/
 /* SIGNED INTEGER FUNCTIONS */
 /****************************/
-
 /* 
-NOTES ON SIGNED-INTEGER OPERATIONS
+NOTES ON SIGNED-INTEGER OPERATIONS (experimental)
 ----------------------------------
 You can choose to treat BigDigits integers as "signed" with their values stored in two's-complement representation.
 A negative number will be a BigDigit integer with its left-most bit set to one, i.e.

@@ -1,19 +1,13 @@
 /* $Id: bigd.h $ */
 
-/***** BEGIN LICENSE BLOCK *****
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2001-16 David Ireland, D.I. Management Services Pty Limited
- * <http://www.di-mgt.com.au/bigdigits.html>. All rights reserved.
- *
- ***** END LICENSE BLOCK *****/
 /*
+ * Copyright (C) 2001-26 David Ireland, D.I. Management Services Pty Limited
+ * <https://di-mgt.com.au/contact/> <https://di-mgt.com.au/bigdigits.html>
+ * SPDX-License-Identifier: MPL-2.0
+ *
  * Last updated:
- * $Date: 2016-03-31 09:51:00 $
- * $Revision: 2.6.1 $
+ * $Date: 2026-04-29 05:59:00 $
+ * $Revision: 2.8.0 $
  * $Author: dai $
  */
 
@@ -26,7 +20,7 @@
 BigDigits is a free library of multiple-precision arithmetic routines written in ANSI C 
 to carry out calculations with the large natural numbers used in cryptography computations.
 
-You can download it from http://www.di-mgt.com.au/bigdigits.html.
+You can download it from https://di-mgt.com.au/bigdigits.html.
 
 The BigDigits library is designed to work with the set of natural numbers \b N; 
 that is, the non-negative integers 0,1,2,... . 
@@ -86,12 +80,14 @@ typedef uint32_t bdigit_t;
 /**** END OF USER CONFIGURABLE SECTION ****/
 /** @cond */
 /**** OPTIONAL PREPROCESSOR DEFINITIONS ****/
-/* 
-   Choose one of { USE_SPASM | USE_64WITH32 }
-   USE_SPASM: to use the faster x86 ASM routines (if __asm option is available with your compiler).
-   USE_64WITH32: to use the 64-bit integers if available (e.g. long long).
-   Default: use default internal routines spDivide and spMultiply.
-   The USE_SPASM option takes precedence over USE_64WITH32.
+/* [Changed in v2.8]
+   The default [v2.8] is to use 64-bit integers (formerly the USE_64WITH32 option).
+   Or choose one of
+   USE_SPASM: to use the faster x86 ASM routines (on Intel processors where the __asm option is available with your compiler); or
+   USE_32ONLY: if 64-bit integers and __asm are not available.
+   The USE_SPASM option takes precedence over USE_32ONLY.
+
+   [v2.7] Define NO_WINGUI to avoid using Windows GUI function MessageBox.
 */
 
 #ifdef NO_ALLOCS 
@@ -199,9 +195,17 @@ int bdMultiply(BIGD w, BIGD u, BIGD v);
 @param[in] u Dividend
 @param[in] v Divisor
 @remark Trashes q and r first: `q` and `r` must be independent of `u` and `v`.
-Use bdDivide_s() to avoid overlap restriction.
+Use bdDivide_s() to avoid overlap restriction or bdIntDivide() to ignore remainder.
 */
 int bdDivide(BIGD q, BIGD r, BIGD u, BIGD v);
+
+/** Compute integer division of u by v, ignoring remainder
+@param[out] q To receive quotient = u div v
+@param[in] u Dividend
+@param[in] v Divisor
+@remark Same as bdDivide() but ignores remainder.
+*/
+int bdIntDivide(BIGD q, BIGD u, BIGD v);
 
 /** Compute remainder r = u mod v
 @remark `r` and `u` must be separate variables.
@@ -432,8 +436,16 @@ int bdShortMult(BIGD w, BIGD u, bdigit_t d);
 @param[in] u Dividend, a BIGD object
 @param[in] d Divisor, a single digit
 @remark A separate BIGD object `r` must be provided to receive the remainder.
+Use bdShortIntDiv() to avoid remainder.
 */
 int bdShortDiv(BIGD q, BIGD r, BIGD u, bdigit_t d);
+
+/** Computes integer division of u by single digit d ignoring remainder
+@param[out] q To receive quotient = u div d
+@param[in] u Dividend, a BIGD object
+@param[in] d Divisor, a single digit
+*/
+int bdShortIntDiv(T q, T u, bdigit_t d);
 
 /** Computes r = u mod d where d is a single digit */
 bdigit_t bdShortMod(BIGD r, BIGD u, bdigit_t d);
@@ -581,6 +593,40 @@ size_t bdConvToHex(BIGD b, char *s, size_t smax);
 */
 size_t bdConvFromDecimal(BIGD b, const char *s);
 
+/** Converts a string of digits in the specified radix `base` to an equivalent BIGD object.
+@param[out] b To receive the result
+@param[in] s Null-terminated string to be converted
+@param[in] endptr Provided `endptr` is not a null pointer, `*endptr` stores a pointer to the 
+first character that could not be converted, similar to ANSI `strtoul`.
+@param[in] base Supported bases are 10 (decimal), 16 (hexadecimal), and 2 (binary).
+If `base` equals 0 then base 10 is assumed unless the prefix `0x` or `0b` is present,
+denoting base 16 or base 2 respectively. 
+@returns Number of significant digits actually set (at least 1), or 0 on error (e.g., invalid base, invalid characters).
+@remark The conversion stops at the first invalid character or end of string.
+If the string s does not match a valid pattern, the value stored in `*endptr` is `s` and `b` is set to zero.
+@par Example
+@code
+BIGD n;
+char *endptr;
+n = bdNew();
+bdConvFromStr(n, "123456789012345678901234567890123456789012345678901234567890", NULL, 0);
+bdPrintDecimal("n=", n, "\n");
+// n=123456789012345678901234567890123456789012345678901234567890
+bdConvFromStr(n, "  0xDEADBEEFCAFEBABE01", &endptr, 0);
+bdPrintHex("n=", n, "\n");
+// n=deadbeefcafebabe01
+bdConvFromStr(n, "  0b1101111010101101101111101110111111001010111111101011101010111110000000012", &endptr, 0);
+bdPrintHex("n=", n, "\n");
+// n=deadbeefcafebabe01
+if (*endptr != '\0') {
+   printf("Found trailing character '%c'\n", *endptr);
+   // Found trailing character '2'
+}
+bdFree(&b);
+@endcode
+*/
+size_t bdConvFromStr(BIGD b, const char *s, char **endptr, int base);
+
 /** Convert BIGD object into a string of decimal characters
 @param[in] b BIGD object to be converted
 @param[out] s String buffer to receive output
@@ -645,15 +691,15 @@ int bdGeneratePrime(BIGD a, size_t nbits, size_t ntests, const unsigned char *se
 /** Returns version number = major*1000+minor*100+release*10+PP_OPTIONS */
 int bdVersion(void);
 	/* Returns version number = major*1000+minor*100+release*10+uses_asm(0|1)+uses_64(0|2) 
-		 E.g. Version 2.3.0 will return 230x where x denotes the preprocessor options
-		 x | USE_SPASM | USE_64WITH32 | NO_ALLOCS
-		 --+-----------+--------------+----------
-		 0 |    No     |      No      |    N/A
-		 1 |    Yes    |      No      |    N/A
-		 2 |    No     |      Yes     |    N/A
-		 3 |    Yes    |      Yes*    |    N/A
-		 --+-----------+--------------+----------
-		 * USE_SPASM will take precedence over USE_64WITH32.
+		 E.g. Version 2.8.0 will return 280x where x denotes the preprocessor options
+		 x | USE_SPASM | USE_32ONLY | NO_ALLOCS
+		 --+-----------+------------+----------
+		 0 |    No     |    No      |    N/A
+		 1 |    Yes    |    No      |    N/A
+		 2 |    No     |    Yes     |    N/A
+		 3 |    Yes    |    Yes*    |    N/A
+		 --+-----------+------------+----------
+		 * USE_SPASM will take precedence over USE_32ONLY.
 	 */
 
 

@@ -1,19 +1,13 @@
 /* $Id: bigdigits.c $ */
 
-/***** BEGIN LICENSE BLOCK *****
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2001-16 David Ireland, D.I. Management Services Pty Limited
- * <http://www.di-mgt.com.au/bigdigits.html>. All rights reserved.
- *
- ***** END LICENSE BLOCK *****/
 /*
+ * Copyright (C) 2001-26 David Ireland, D.I. Management Services Pty Limited
+ * <https://di-mgt.com.au/contact/> <https://di-mgt.com.au/bigdigits.html>
+ * SPDX-License-Identifier: MPL-2.0
+ *
  * Last updated:
- * $Date: 2016-03-31 09:51:00 $
- * $Revision: 2.6.1 $
+ * $Date: 2026-04-29 05:59:00 $
+ * $Revision: 2.8.0 $
  * $Author: dai $
  */
 
@@ -27,13 +21,16 @@
 #include "bigdigits.h"
 
 /* For debugging - these are NOOPs */
-#define DPRINTF0(s) 
-#define DPRINTF1(s, a1) 
+#define DPRINTF0(s)
+#define DPRINTF1(s, a1)
 
 /***************************************/
 /* VERSION NUMBERS - USED IN MPVERSION */
 /***************************************/
-static const int kMajor = 2, kMinor = 6, kRelease = 1;
+static const int kMajor = 2, kMinor = 8, kRelease = 0;
+
+#define COPYRIGHT_NOTICE "Contains multiple-precision arithmetic code originally written by David Ireland," \
+" copyright (c) 2001-26 by D.I. Management Services Pty Limited <https://di-mgt.com.au>."
 
 /* Flags for preprocessor definitions used (=last digit of mpVersion) */
 #ifdef USE_SPASM
@@ -42,10 +39,10 @@ static const int kUseSpasm = 1;
 static const int kUseSpasm = 0;
 #endif
 
-#ifdef USE_64WITH32
-static const int kUse64with32 = 2;
+#ifdef USE_32ONLY
+static const int kUse30only = 2;
 #else
-static const int kUse64with32 = 0;
+static const int kUse30only = 0;
 #endif
 
 #ifdef NO_ALLOCS
@@ -70,7 +67,8 @@ static const int kUseNoAllocs = 0;
 /* ERROR HANDLING FUNCTIONS */
 /****************************/
 /* Change these to suit your tastes and operating system. */
-#if defined(_WIN32) || defined(WIN32)
+/* New in [v2.7] define NO_WINGUI to avoid Windows API altogether */
+#if (defined(_WIN32) || defined(WIN32)) && !(defined(NO_WINGUI))
 /* Win32 GUI alternative */
 #ifndef STRICT
 #define STRICT
@@ -79,7 +77,7 @@ static const int kUseNoAllocs = 0;
 #include <windows.h>
 void mpFail(char *msg)
 {
-	MessageBox(NULL, msg, "BigDigits Error", MB_ICONERROR);
+	MessageBoxA(NULL, msg, "BigDigits Error", MB_ICONERROR);
 	exit(EXIT_FAILURE);
 }
 #else	/* Ordinary console program */
@@ -142,9 +140,7 @@ volatile uint8_t zeroise_bytes(volatile void *v, size_t n)
 /* Force linker to include copyright notice in executable object image */
 volatile char *copyright_notice(void)
 {
-	return 
-"Contains multiple-precision arithmetic code originally written by David Ireland,"
-" copyright (c) 2001-16 by D.I. Management Services Pty Limited <www.di-mgt.com.au>.";
+	return COPYRIGHT_NOTICE;
 }
 
 
@@ -161,7 +157,7 @@ Thanks to Phil Zimmerman for this idea.
 /****************/
 int mpVersion(void)
 {
-	return (kMajor * 1000 + kMinor * 100 + kRelease * 10 + kUseSpasm + kUse64with32 + kUseNoAllocs);
+	return (kMajor * 1000 + kMinor * 100 + kRelease * 10 + kUseSpasm + kUse30only + kUseNoAllocs);
 }
 
 
@@ -170,24 +166,28 @@ int mpVersion(void)
 /* (double where necessary)           */
 /**************************************/
 
-/* [v2.2] Moved these functions into main file
-	and added third option using 64-bit arithmetic if available.
+/*	[v2.8] USE_64WITH32 is now the default. Added USE_32ONLY.
 OPTIONS: 
-1. define USE_64WITH32 to use 64-bit types on a 32-bit machine; or
-2. define USE_SPASM to use Intel ASM (32-bit Intel compilers with __asm support); or
-3. use default "long" calculations (any platform)
+* define USE_SPASM to use Intel ASM (32-bit Intel compilers with __asm support); or
+* define USE_32ONLY if neither uint64_t nor __asm are available (use "long" calcs); or
+* else use default assuming uint_64 is available.
 */
 
-#ifdef USE_64WITH32
-/* 1. We are on a 32-bit machine with a 64-bit type available. */
-#pragma message("USE_64WITH32 is set")
+#if !defined(USE_SPASM) && !defined(USE_32ONLY)
+#define _USE_DEFAULT
+#endif
+
+#ifdef _USE_DEFAULT
+/* 1. Default 64-bit type is available. */
+#pragma message("Using default 64-bit integers")
 
 /* Make sure we have a uint64_t available */
-#if defined (_WIN32) || defined(WIN32)
-typedef unsigned __int64 uint64_t;
-#elif !defined(HAVE_C99INCLUDES) && !defined(HAVE_SYS_TYPES)
-typedef unsigned long long int uint64_t;
-#endif
+// No need - compiler will just throw an error
+//#if defined (_WIN32) || defined(WIN32)
+//typedef unsigned __int64 uint64_t;
+//#elif !defined(HAVE_C99INCLUDES) && !defined(HAVE_SYS_TYPES)
+//typedef unsigned long long int uint64_t;
+//#endif
 
 int spMultiply(uint32_t p[2], uint32_t x, uint32_t y)
 {
@@ -267,7 +267,8 @@ no_overflow:
 }
 
 #else
-/* Default routines the "long" way */
+/* 32-bit routines the "long" way */
+#pragma message("Using 32-bit only")
 
 int spMultiply(DIGIT_T p[2], DIGIT_T x, DIGIT_T y)
 {	/*	Computes p = x * y */
@@ -1004,11 +1005,12 @@ int mpIsZero(const DIGIT_T a[], size_t ndigits)
 }
 
 /* CONSTANT-TIME COMPARISONS */
-/* New in [v2.5] but renamed as _ct in [v.6] */
+/* New in [v2.5] but renamed as _ct in [v2.6] */
 
 /* Constant-time comparisons of unsigned DIGIT_T's */ 
 #define IS_NONZERO_DIGIT(x) (((x)|(~(x)+1)) >> (BITS_PER_DIGIT-1))
-#define IS_ZER0_DIGIT(x) (1 ^ IS_NONZERO_DIGIT((x)))
+#define IS_ZERO_DIGIT(x) (1 ^ IS_NONZERO_DIGIT((x)))
+#define IS_LT_DIGIT(x,y) (((x)^(((x)^(y))|(((x)-(y))^(y)))) >> (BITS_PER_DIGIT-1))
 
 /** Returns 1 if a == b, else 0 (constant-time) */
 int mpEqual_ct(const DIGIT_T a[], const DIGIT_T b[], size_t ndigits)
@@ -1019,7 +1021,7 @@ int mpEqual_ct(const DIGIT_T a[], const DIGIT_T b[], size_t ndigits)
 		dif |= a[ndigits] ^ b[ndigits];
 	}
 
-	return (IS_ZER0_DIGIT(dif));
+	return (IS_ZERO_DIGIT(dif));
 }
 
 /** Returns 1 if a == 0, else 0 (constant-time) */
@@ -1032,7 +1034,7 @@ int mpIsZero_ct(const DIGIT_T a[], size_t ndigits)
 		dif |= a[ndigits] ^ ZERO;
 	}
 
-	return (IS_ZER0_DIGIT(dif));
+	return (IS_ZERO_DIGIT(dif));
 }
 
 /** Returns sign of (a - b) as 0, +1 or -1 (constant-time) */
@@ -1045,8 +1047,9 @@ int mpCompare_ct(const DIGIT_T a[], const DIGIT_T b[], size_t ndigits)
 	unsigned int c;
 
 	while (ndigits--) {
-		gt |= (a[ndigits] > b[ndigits]) & mask;
-		lt |= (a[ndigits] < b[ndigits]) & mask;
+		/* Changed in [v2.6] to use IS_LT_DIGIT */
+		lt |= IS_LT_DIGIT(a[ndigits], b[ndigits]) & mask;
+		gt |= IS_LT_DIGIT(b[ndigits], a[ndigits]) & mask;
 		c = (gt | lt);
 		mask &= (c-1);	/* Unchanged if c==0 or mask==0, else mask=0 */
 	}
@@ -1948,6 +1951,146 @@ size_t mpConvFromDecimal(DIGIT_T a[], size_t ndigits, const char *s)
 	return n;
 }
 
+// Simple ASCII macros to avoid use of ctype.h
+#define ISDIGIT(x) ((x) >= '0' && (x) <= '9')
+#define ISHEXDIGIT(x) (ISDIGIT(x) || ( (x) >= 'a' && (x) <= 'f') || ((x) >= 'A' && (x) <= 'F') )
+#define ISSPACE(x) ((x) == ' ' || (x) == '\t' || (x) == '\r' || (x) == '\n')
+
+// New [2026-03-21] Updated [2026-04-02]
+size_t mpConvFromStr(DIGIT_T a[], size_t ndigits, const char *s, char **endptr, int base)
+/* Converts a string of radix `base` digits to a big digit. 
+Sets endptr like ANSI `strtol` where endptr (if it is not NULL) points to the first character
+past the converted string or, if the subject string is empty or unacceptable, then it
+points to the beginning of `s`.
+`base` may be 10 (decimal), 16 (hexadecimal), 2 (binary) or 0 (detect `0x` or `0b` or default to 10).
+Return actual number of digits set (may be larger than mpSizeof) or 0 on error.
+*/
+/* ANSI C99 Reference:
+ISO/IEC 9899:1999 7.20.1.4 `strtoul` et al.
+First, decompose the input string into three parts: an initial, possibly empty, sequence of
+white-space characters (as specified by the isspace function), a subject sequence
+resembling an integer represented in some radix determined by the value of base, and a
+final string of one or more unrecognized characters, including the terminating null
+character of the input string. Then, attempt to convert the subject sequence to an
+integer, and return the result.
+*/
+{
+#ifdef NO_ALLOCS
+	uint8_t newdigits[MAX_ALLOC_SIZE * 2];	// [v2.6] increased
+#else
+	uint8_t *newdigits;
+#endif
+	size_t newlen;
+	size_t n;
+	uint32_t t;
+	size_t j;
+	const char *p;	// scanning pointer
+	char c;
+	int readadigit = 0;	// Flag we've read a valid digit
+
+	mpSetZero(a, ndigits);	// Set default return to zero
+	// Set endptr to start of string in case we exit with an error
+	if (endptr != NULL)
+		*endptr = (char *)s;
+
+	if (!(base == 0 || base == 10 || base == 16 || base == 2) || s == NULL) {
+		// invalid base or null input string
+		return 0;
+	}
+
+	/* Create some temp storage for int values */
+	n = strlen(s);
+	if (0 == n) return 0;
+	// Worst case is hex (base 16)
+	newlen = uiceil(n * 0.5);	/* log(16)/log(256)=log(2^4)/log(2^8)=4/8=0.5 */
+	ALLOC_BYTES(newdigits, newlen);
+
+	p = s;
+	c = *p++;
+	while (ISSPACE(c)) {
+		c = *p++;	/* skip whitespace */
+	}
+
+	/* Determine base from first two characters of string */
+	if (base == 0) {
+		if (*p == 'x' || *p == 'X')
+			base = 16;
+		else if (*p == 'b' || *p == 'B')
+			base = 2;
+		else
+			base = 10;
+	}
+	/* Skip past prefix "0x" */
+	if (base == 16) {
+		if (c == '0' && (*p == 'x' || *p == 'X')) {
+			++p;
+			c = *p++;
+		}
+	}
+	else if (base == 2) {  // or "0b"
+		if (c == '0' && (*p == 'b' || *p == 'B')) {
+			++p;
+			c = *p++;
+		}
+	}
+
+	/* Work through zero-terminated subject string */
+	for (;;) { // Loop until we find an invalid digit or null
+		t = 0xFF;	// Initially out of range unless corrected
+		if (ISHEXDIGIT(c)) {	
+			// A HEXDIGIT is valid for all our bases. It may be too big but we'll catch that.
+			switch (base) {
+			case 10:
+			case 2:
+				if (ISDIGIT(c)) {
+					t = c - '0';
+				}
+				break;
+			case 16:
+				if (ISHEXDIGIT(c)) {
+					if ((c >= '0') && (c <= '9')) t = (c - '0');
+					else if ((c >= 'a') && (c <= 'f')) t = (c - 'a' + 10);
+					else if ((c >= 'A') && (c <= 'F')) t = (c - 'A' + 10);
+				}
+				break;
+			}
+		}
+		else {
+			break;	// Found an invalid digit
+		}
+		if (t >= (uint32_t)base) {
+			break;	// Out of range
+		}
+
+		readadigit = 1;	// OK, we have succesfully read at least one digit
+		for (j = newlen; j > 0; j--) {
+			t += (uint32_t)newdigits[j - 1] * base;
+			newdigits[j - 1] = (uint32_t)(t & 0xFF);
+			t >>= 8;
+		}
+		c = *p++;	/* get next digit */
+	}
+	--p;	/* remember where we stopped */
+
+	if (readadigit) { // Success. We found at least one valid digit to convert
+		/* Convert bytes to big digits */
+		n = mpConvFromOctets(a, ndigits, newdigits, newlen);
+		if (endptr != NULL) {
+			*endptr = (char *)p;	// where we stopped (may be terminating null)
+		}
+	} 
+	else if (endptr != NULL) {	// Nothing found to convert. Return 0 (output a[] is already zero).
+		*endptr = (char *)s;	// Point to start of input string
+		n = 0;
+	}
+
+	/* Clean up */
+	FREE_BYTES(newdigits, newlen);
+
+	return n;
+}
+
+
 size_t mpConvFromHex(DIGIT_T a[], size_t ndigits, const char *s)
 /* Convert a string in hexadecimal format to a big digit.
    Return actual number of digits set (may be larger than mpSizeof).
@@ -2097,8 +2240,10 @@ void mpModAdd(DIGIT_T w[], const DIGIT_T u[], const DIGIT_T v[], const DIGIT_T m
 	// w != v
 	carry = mpAdd(w, u, v, ndigits);
 	// NB This works even with overflow beyond ndigits
-	if (carry || mpCompare(w, m, ndigits) >= 0) {
+	// [2026-04-15] Allow u+v to be any size, reduce modulo m  
+	while (carry || mpCompare(w, m, ndigits) >= 0) {
 		mpSubtract(w, w, m, ndigits);
+		carry = 0;
 	}
 }
 
@@ -2114,9 +2259,9 @@ void mpModSub(DIGIT_T w[], const DIGIT_T u[], const DIGIT_T v[], const DIGIT_T m
 	DIGIT_T *t;
 	t = mpAlloc(ndigits);
 #endif
-	/* w <-- m - v [always > 0] */
+	/* t = m - v [always > 0] */
 	mpSubtract(t, m, v, ndigits);
-	/* w <-- w + u (mod m) */
+	/* w = t + u (mod m) */
 	mpModAdd(w, u, t, m, ndigits);
 
 	mpDESTROY(t, ndigits);

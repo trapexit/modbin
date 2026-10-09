@@ -1,19 +1,13 @@
 /* $Id: bigdtypes.h $ */
 
-/***** BEGIN LICENSE BLOCK *****
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2001-16 David Ireland, D.I. Management Services Pty Limited
- * <http://www.di-mgt.com.au/bigdigits.html>. All rights reserved.
- *
- ***** END LICENSE BLOCK *****/
 /*
+ * Copyright (C) 2001-26 David Ireland, D.I. Management Services Pty Limited
+ * <https://di-mgt.com.au/contact/> <https://di-mgt.com.au/bigdigits.html>
+ * SPDX-License-Identifier: MPL-2.0
+ *
  * Last updated:
- * $Date: 2016-03-31 09:51:00 $
- * $Revision: 2.6.1 $
+ * $Date: 2026-03-29 12:53:00 $
+ * $Revision: 2.7.0 $
  * $Author: dai $
  */
 
@@ -23,9 +17,9 @@
 #include <stddef.h>
 
 /*
-The following PP instructions assume that all Linux systems have a C99-conforming 
+The following PP instructions assume that all GNU-compatible systems have a C99-conforming 
 <stdint.h>; that other Unix systems have the uint32_t definitions in <sys/types.h>;
-and that MS et al don't have them at all. This version assumes that a long is 32 bits.
+and that MSVC has them from MSVC2013 onwards. This version assumes that a long is 32 bits.
 Adjust if necessary to suit your system. 
 You can override by defining HAVE_C99INCLUDES or HAVE_SYS_TYPES.
 */
@@ -33,7 +27,7 @@ You can override by defining HAVE_C99INCLUDES or HAVE_SYS_TYPES.
 #ifndef EXACT_INTS_DEFINED_
 #define EXACT_INTS_DEFINED_ 1
 #ifndef HAVE_C99INCLUDES
-	#if (__STDC_VERSION >= 199901L) || defined(linux) || defined(__linux__) || defined(__APPLE__)
+#if (__STDC_VERSION >= 199901L) || (_MSC_VER >= 1800) || defined(__GNUC__) || defined(__APPLE__)
 	#define HAVE_C99INCLUDES
 	#endif
 #endif

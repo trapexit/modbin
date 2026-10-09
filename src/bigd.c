@@ -1,19 +1,13 @@
 /* $Id: bigd.c $ */
 
-/***** BEGIN LICENSE BLOCK *****
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) 2001-16 David Ireland, D.I. Management Services Pty Limited
- * <http://www.di-mgt.com.au/bigdigits.html>. All rights reserved.
- *
- ***** END LICENSE BLOCK *****/
 /*
+ * Copyright (C) 2001-26 David Ireland, D.I. Management Services Pty Limited
+ * <https://di-mgt.com.au/contact/> <https://di-mgt.com.au/bigdigits.html>
+ * SPDX-License-Identifier: MPL-2.0
+ *
  * Last updated:
- * $Date: 2016-03-31 09:51:00 $
- * $Revision: 2.6.1 $
+ * $Date: 2026-04-29 05:59:00 $
+ * $Revision: 2.8.0 $
  * $Author: dai $
  */
 
@@ -299,6 +293,22 @@ size_t bdConvFromDecimal(BIGD b, const char *s)
 
 	return n;
 }
+
+size_t bdConvFromStr(BIGD b, const char *s, char **endptr, int base)
+{
+	size_t ndigits, n;
+
+	assert(b);
+	/* approx size but never too small */
+	ndigits = (strlen(s) / 2 + OCTETS_PER_DIGIT) / OCTETS_PER_DIGIT;
+	bd_resize(b, ndigits);
+
+	n = mpConvFromStr(b->digits, ndigits, s, endptr, base);
+	b->ndigits = n;
+
+	return n;
+}
+
 
 size_t bdConvToDecimal(BIGD b, char *s, size_t smax)
 {
@@ -879,6 +889,23 @@ int bdShortDiv(T q, T r, T u, bdigit_t d)
 	return 0;
 }
 
+int bdShortIntDiv(T q, T u, bdigit_t d)
+	/* Computes quotient q = u / d using integer division, no remainder */
+{
+	int ret;
+	size_t dig_size;
+
+	assert(q && u);
+	dig_size = u->ndigits;
+	bd_resize(q, dig_size);
+
+	ret = mpShortDiv(q->digits, u->digits, d, dig_size);
+
+	q->ndigits = mpSizeof(q->digits, dig_size);
+
+	return ret;
+}
+
 int bdDivide(T q, T r, T u, T v)
 	/* Computes quotient q = u / v and remainder r = u mod v 
 	   trashes q and r first
@@ -899,6 +926,19 @@ int bdDivide(T q, T r, T u, T v)
 	r->ndigits = mpSizeof(r->digits, dig_size);
 
 	return 0;
+}
+
+int bdIntDivide(T q, T u, T v)
+	/* Computes quotient q = u / v using integer division, no remainder */
+{
+	int res;
+	// Use a temp BIGD variable for the remainder
+	BIGD rr;
+	rr = bdNew();
+	res = bdDivide(q, rr, u, v);
+	bdFree(&rr);
+
+	return res;
 }
 
 int bdDivide_s(T q, T r, T u, T v)
