@@ -16,6 +16,8 @@
   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
+#include "tdo_aif_signing.h"
+
 #include "fileio.h"
 #include "md5.h"
 #include "tdo_aif.h"
@@ -88,9 +90,10 @@ end_of_buffer_0xFFFFFFFF(void   *buf_,
 }
 
 int
-tdo_aif_sign(void       **buf_,
-             size_t      *size_,
-             const char  *key_)
+tdo_aif_sign(void           **buf_,
+             size_t          *size_,
+             const char      *key_,
+             const uint32_t  *workspace_)
 {
   size_t size;
   char *buf;
@@ -111,12 +114,17 @@ tdo_aif_sign(void       **buf_,
     fprintf(stderr,"WARNING: file doesn't appear to be an ARM executable. File last 4 bytes != 0xFF.\n");
 
   tdo_aif_set_sig_offset(buf,size);
+  // Signature metadata setters stamp the workspace marker.
+  if(workspace_ != NULL)
+    tdo_aif_set_workspace(buf,*workspace_);
 
   calculate_md5(buf,size,digest);
 
   sign_md5_digest(key_,digest,sig);
 
   tdo_aif_set_sig_size(buf,RSA512_SIG_SIZE);
+  if(workspace_ != NULL)
+    tdo_aif_set_workspace(buf,*workspace_);
 
   buf = realloc(buf,(size+RSA512_SIG_SIZE));
   if(buf == NULL)

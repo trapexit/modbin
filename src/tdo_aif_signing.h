@@ -18,4 +18,17 @@
 
 #pragma once
 
-int tdo_aif_sign(void **buf, size_t *size, const char *key);
+#include <stddef.h>
+#include <stdint.h>
+
+// Signs a caller-owned heap AIF buffer with the borrowed key name.
+// workspace_ is a borrowed optional full-word override for both hashing and
+// output; NULL preserves the signature metadata setters' workspace marker.
+// Returns 0 after updating *buf_ (which may move) and *size_; the caller retains
+// ownership. Returns -1 on allocation failure, leaving *buf_ and *size_ unchanged
+// but possibly modifying header metadata in the original buffer.
+int
+tdo_aif_sign(void           **buf_,
+             size_t          *size_,
+             const char      *key_,
+             const uint32_t  *workspace_);

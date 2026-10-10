@@ -66,6 +66,7 @@ $(OUTPUT): builddir $(OBJS)
 test: $(OUTPUT) $(TEST_OUTPUT) $(KEY_TEST_OUTPUT)
 	UBSAN_OPTIONS="$(UBSAN_OPTIONS):halt_on_error=1" $(TEST_OUTPUT)
 	$(PYTHON) tests/signing_test.py $(OUTPUT)
+	$(PYTHON) tests/workspace_test.py $(OUTPUT)
 	$(PYTHON) tests/tdo_keys_test.py $(KEY_TEST_OUTPUT)
 
 $(TEST_OUTPUT): $(TEST_OBJS) $(BUILDDIR)/bigdigits.c.o

@@ -45,6 +45,12 @@ Usage: modbin [options]... <input-file> [<output-file>]
 
 To print out the current values of a 3DO AIF executable just include an input file. You can also combine that with the other options to confirm what gets set and their values. If you wish to create a new file set the output. The new file can be the same as the original if you wish to overwrite it. Be sure to re-sign if changing the values of a signed executable.
 
+An explicit `--workspace` overrides the marker written by other header setters
+and `--reset`, regardless of option position. `--workspace=0` clears the 3DO
+marker. When signing, the requested workspace word is included in the hash and
+preserved in the output; without this option, the existing marker behavior is
+unchanged.
+
 `--compress` / `--decompress` implement the 3DO AIF order-1 byte-predictor
 compression format (the one used by the stock Opera privileged folios). They
 may be combined with the other flags; compress/decompress runs first and the
@@ -73,7 +79,8 @@ Use `make clean && make DEBUG=1` for an unoptimized debug build without static
 linking or LTO. `SANITIZE=1` enables the undefined-behavior sanitizer.
 
 Run arithmetic boundary tests, compare actual CLI signatures against an
-independent Python MD5/RSA calculation, and check release-mode key helpers:
+independent Python MD5/RSA calculation, check workspace precedence and re-signing,
+and check release-mode key helpers:
 
 ```sh
 $ make test
@@ -83,10 +90,11 @@ $ make test DEBUG=1 SANITIZE=1 TARGET=ubsan
 The sanitizer build uses a separate object directory; sanitizer diagnostics
 are fatal in all regression runners. Key helper tests disable assertions to
 verify that invalid names still terminate rather than return an undefined
-value. The CLI signing test also accepts a runner prefix, for example:
+value. The CLI signing and workspace tests also accept a runner prefix:
 
 ```sh
 $ python3 tests/signing_test.py qemu-aarch64 build/modbin_aarch64-linux-musl
+$ python3 tests/workspace_test.py qemu-aarch64 build/modbin_aarch64-linux-musl
 ```
 
 ### Release builds

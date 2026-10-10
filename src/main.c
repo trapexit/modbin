@@ -25,6 +25,7 @@
 #include "tdo_aif_signing.h"
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,6 +75,8 @@ main(int    argc_,
   int rv;
   void *file_buf;
   size_t file_size;
+  uint32_t workspace = 0;
+  bool workspace_seen = false;
   const char *sign;
   const char *input_file;
   const char *output_file;
@@ -191,7 +194,10 @@ main(int    argc_,
       else if(streq(options[i].long_name,"nodebug"))
         tdo_aif_set_nodebug(file_buf);
       else if(streq(options[i].long_name,"workspace"))
-        tdo_aif_set_workspace(file_buf,options[i].val.v_unsigned);
+        {
+          workspace = options[i].val.v_unsigned;
+          workspace_seen = true;
+        }
       else if(streq(options[i].long_name,"revision"))
         tdo_aif_set_revision(file_buf,options[i].val.v_unsigned);
       else if(streq(options[i].long_name,"subsystype"))
@@ -226,10 +232,12 @@ main(int    argc_,
 
   if(sign != NULL)
     {
-      rv = tdo_aif_sign(&file_buf,&file_size,sign);
+      rv = tdo_aif_sign(&file_buf,&file_size,sign,workspace_seen ? &workspace : NULL);
       if(rv == -1)
         goto error;
     }
+  else if(workspace_seen)
+    tdo_aif_set_workspace(file_buf,workspace);
 
   tdo_aif_print(stdout,file_buf);
 

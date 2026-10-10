@@ -40,7 +40,7 @@
 #define FREESPACE_OFFSET  0xAC
 #define SIG_OFFSET_OFFSET 0xB0
 #define SIG_SIZE_OFFSET   0xB4
-#define MAXUSECS_OFFSET   0xBC
+#define MAXUSECS_OFFSET   0xB8
 #define NAME_OFFSET       0xC0
 #define NAME_SIZE         32
 #define TIME_OFFSET       (NAME_OFFSET + NAME_SIZE)
