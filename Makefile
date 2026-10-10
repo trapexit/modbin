@@ -53,7 +53,9 @@ OBJS := $(SRCS_C:src/%.c=$(BUILDDIR)/%.c.o)
 OBJS += $(SRCS_CXX:src/%.cpp=$(BUILDDIR)/%.cpp.o)
 TEST_OBJS := $(BUILDDIR)/bigdigits_test.c.o
 TEST_OUTPUT := $(BUILDDIR)/bigdigits_test
-DEPS = $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
+KEY_TEST_OBJS := $(BUILDDIR)/tdo_keys_test.c.o $(BUILDDIR)/tdo_keys_ndebug.c.o
+KEY_TEST_OUTPUT := $(BUILDDIR)/tdo_keys_test
+DEPS = $(OBJS:.o=.d) $(TEST_OBJS:.o=.d) $(KEY_TEST_OBJS:.o=.d)
 
 
 all: $(OUTPUT)
@@ -61,15 +63,25 @@ all: $(OUTPUT)
 $(OUTPUT): builddir $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(OUTPUT) $(OBJS) $(LDFLAGS)
 
-test: $(OUTPUT) $(TEST_OUTPUT)
+test: $(OUTPUT) $(TEST_OUTPUT) $(KEY_TEST_OUTPUT)
 	UBSAN_OPTIONS="$(UBSAN_OPTIONS):halt_on_error=1" $(TEST_OUTPUT)
 	$(PYTHON) tests/signing_test.py $(OUTPUT)
+	$(PYTHON) tests/tdo_keys_test.py $(KEY_TEST_OUTPUT)
 
 $(TEST_OUTPUT): $(TEST_OBJS) $(BUILDDIR)/bigdigits.c.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(TEST_OBJS): tests/bigdigits_test.c | builddir
 	$(CC) $(CPPFLAGS) $(CFLAGS) -UNDEBUG -Isrc -c $< -o $@
+
+$(KEY_TEST_OUTPUT): $(KEY_TEST_OBJS) $(BUILDDIR)/bigd.c.o $(BUILDDIR)/bigdigits.c.o $(BUILDDIR)/str.c.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(BUILDDIR)/tdo_keys_test.c.o: tests/tdo_keys_test.c | builddir
+	$(CC) $(CPPFLAGS) $(CFLAGS) -DNDEBUG -Isrc -c $< -o $@
+
+$(BUILDDIR)/tdo_keys_ndebug.c.o: src/tdo_keys.c | builddir
+	$(CC) $(CPPFLAGS) $(CFLAGS) -DNDEBUG -Isrc -c $< -o $@
 
 strip: $(OUTPUT)
 	$(STRIP) --strip-all $(OUTPUT)

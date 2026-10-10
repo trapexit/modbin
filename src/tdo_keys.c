@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static const char M1_RETAIL_3DO_N_STR[] = "B19462B00D8D6E1EC909AB385E06FE034BFD282E9FFDC584838C15F12593DD1E3A8B5626F1B9D0ED0C384EF6C5D14512BD72DDB85B44080E0472C03D0AFC4C97";
 static const char M1_RETAIL_3DO_D_STR[] = "42F7CD9BCD109805BE150A60107D9C8F8BB9A5CCA78361588EEF665AF1ABE887DBC2593D0868F364A93C8CB8CC6F4BCC6A3DE57E04B17AC52F2649939C453F61";
@@ -101,6 +102,7 @@ tdo_keys_n(const char *key_)
   if(streq(key_,"app"))
     return tdo_keys_m1_retail_app_n();
   assert(false);
+  abort();
 }
 
 BIGD
@@ -111,6 +113,7 @@ tdo_keys_d(const char *key_)
   if(streq(key_,"app"))
     return tdo_keys_m1_retail_app_d();
   assert(false);
+  abort();
 }
 
 BIGD
@@ -122,4 +125,5 @@ tdo_keys_m(const char   *key_,
   if(streq(key_,"app"))
     return tdo_keys_m1_retail_message(digest_);
   assert(false);
+  abort();
 }

@@ -61,6 +61,66 @@ static const ShiftCase g_SHIFT_CASES[] =
       0x89abcdefU
     },
     {
+      (BITS_PER_DIGIT + CROSS_SHIFT_BITS),
+      {
+        0x00000000U,
+        0x9abcdef0U,
+        0x12345678U
+      },
+      {
+        0x80123456U,
+        0x0fedcba9U,
+        0x00000000U
+      },
+      0xedcba980U,
+      0x789abcdeU
+    },
+    {
+      (2 * BITS_PER_DIGIT),
+      {
+        0x00000000U,
+        0x00000000U,
+        0x89abcdefU
+      },
+      {
+        0xfedcba98U,
+        0x00000000U,
+        0x00000000U
+      },
+      0x01234567U,
+      0x01234567U
+    },
+    {
+      ((2 * BITS_PER_DIGIT) + CROSS_SHIFT_BITS),
+      {
+        0x00000000U,
+        0x00000000U,
+        0x9abcdef0U
+      },
+      {
+        0x0fedcba9U,
+        0x00000000U,
+        0x00000000U
+      },
+      0x12345678U,
+      0x80123456U
+    },
+    {
+      (TEST_DIGITS * BITS_PER_DIGIT),
+      {
+        0x00000000U,
+        0x00000000U,
+        0x00000000U
+      },
+      {
+        0x00000000U,
+        0x00000000U,
+        0x00000000U
+      },
+      0x89abcdefU,
+      0xfedcba98U
+    },
+    {
       CROSS_SHIFT_BITS,
       {
         0x9abcdef0U,
@@ -164,8 +224,8 @@ main(void)
   for(i = 0; i < (sizeof(g_SHIFT_CASES) / sizeof(g_SHIFT_CASES[0])); i++)
     {
       _check_shift_case(&g_SHIFT_CASES[i], 0);
-      if(g_SHIFT_CASES[i].shift < BITS_PER_DIGIT)
-        _check_shift_case(&g_SHIFT_CASES[i], 1);
+      // Aliasing must preserve both the shifted limbs and the original-source carry.
+      _check_shift_case(&g_SHIFT_CASES[i], 1);
     }
 
   for(i = 0; i < TEST_DIGITS; i++)

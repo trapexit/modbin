@@ -72,8 +72,8 @@ The default build uses `-Os -flto -static` and produces `build/modbin`.
 Use `make clean && make DEBUG=1` for an unoptimized debug build without static
 linking or LTO. `SANITIZE=1` enables the undefined-behavior sanitizer.
 
-Run arithmetic boundary tests and compare actual CLI signatures against an
-independent Python MD5/RSA calculation:
+Run arithmetic boundary tests, compare actual CLI signatures against an
+independent Python MD5/RSA calculation, and check release-mode key helpers:
 
 ```sh
 $ make test
@@ -81,8 +81,9 @@ $ make test DEBUG=1 SANITIZE=1 TARGET=ubsan
 ```
 
 The sanitizer build uses a separate object directory; sanitizer diagnostics
-are fatal in both regression runners. The CLI signing test also accepts a
-runner prefix, for example:
+are fatal in all regression runners. Key helper tests disable assertions to
+verify that invalid names still terminate rather than return an undefined
+value. The CLI signing test also accepts a runner prefix, for example:
 
 ```sh
 $ python3 tests/signing_test.py qemu-aarch64 build/modbin_aarch64-linux-musl
@@ -150,9 +151,14 @@ for multiplication and division. `USE_32ONLY` selects 32-bit-only arithmetic.
 
 Local patches omit the unused compile-time timestamp accessors for Zig's
 reproducible-build checks, avoid full-width shifts when the bit remainder is
-zero, and construct bit masks in the unsigned digit type. These shift fixes
-prevent incorrect RSA signatures in optimized builds. AIF header words are
-also assembled as unsigned 32-bit values to avoid signed-shift overflow.
+zero, and construct bit masks in the unsigned digit type. Whole-digit shifts
+capture carry before overwriting an aliased source buffer. The undefined-shift
+fixes prevent incorrect RSA signatures in optimized builds. AIF header words
+are also assembled as unsigned 32-bit values to avoid signed-shift overflow.
+
+Key helpers accept only the nonnull names `app` and `3do`. An invalid internal
+name terminates even when `NDEBUG` disables assertions; the CLI validates the
+name before invoking the helpers.
 
 
 # LINKS

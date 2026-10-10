@@ -1140,6 +1140,8 @@ DIGIT_T mpShiftLeft(DIGIT_T a[], const DIGIT_T *b,
 	if (shift >= BITS_PER_DIGIT)
 	{
 		nw = shift / BITS_PER_DIGIT;
+		bits = shift % BITS_PER_DIGIT;
+		carry = b[ndigits-nw] << bits;
 		i = ndigits;
 		while (i--)
 		{
@@ -1149,8 +1151,6 @@ DIGIT_T mpShiftLeft(DIGIT_T a[], const DIGIT_T *b,
 				a[i] = 0;
 		}
 		/* Call again to shift bits inside digits */
-		bits = shift % BITS_PER_DIGIT;
-		carry = b[ndigits-nw] << bits;
 		if (bits) 
 			carry |= mpShiftLeft(a, a, bits, ndigits);
 		return carry;
@@ -1188,6 +1188,8 @@ DIGIT_T mpShiftRight(DIGIT_T a[], const DIGIT_T b[], size_t shift, size_t ndigit
 	if (shift >= BITS_PER_DIGIT)
 	{
 		nw = shift / BITS_PER_DIGIT;
+		bits = shift % BITS_PER_DIGIT;
+		carry = b[nw-1] >> bits;
 		for (i = 0; i < ndigits; i++)
 		{
 			if ((i+nw) < ndigits)
@@ -1196,8 +1198,6 @@ DIGIT_T mpShiftRight(DIGIT_T a[], const DIGIT_T b[], size_t shift, size_t ndigit
 				a[i] = 0;
 		}
 		/* Call again to shift bits inside digits */
-		bits = shift % BITS_PER_DIGIT;
-		carry = b[nw-1] >> bits;
 		if (bits) 
 			carry |= mpShiftRight(a, a, bits, ndigits);
 		return carry;

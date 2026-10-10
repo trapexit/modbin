@@ -28,6 +28,10 @@ BIGD tdo_keys_m1_retail_app_d(void);
 
 BIGD tdo_keys_m1_retail_message(md5_digest_t digest);
 
+// key must be non-NULL and exactly "app" or "3do"; other names assert and abort,
+// including when assertions are disabled. Each result is a newly allocated
+// BIGD owned by the caller, which must release it with bdFree().
+// m requires a valid MD5 digest and uses the same retail encoding for both keys.
 BIGD tdo_keys_n(const char *key);
 BIGD tdo_keys_d(const char *key);
 BIGD tdo_keys_m(const char *key, md5_digest_t digest);
